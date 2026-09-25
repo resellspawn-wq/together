@@ -8,11 +8,13 @@ import 'models/conversation.dart';
 import 'models/glyph.dart';
 import 'models/message.dart';
 import 'models/profile.dart';
+import 'push/push_service.dart';
 import 'repositories/alphabet_repository.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/conversation_repository.dart';
 import 'repositories/message_repository.dart';
 import 'repositories/profile_repository.dart';
+import 'repositories/push_repository.dart';
 import 'storage/storage_service.dart';
 
 /// Everything that depends on being online/signed-in: auth, the current
@@ -28,6 +30,7 @@ class SessionState extends ChangeNotifier {
   final RemoteAlphabetRepository alphabets;
   final ConversationRepository conversations;
   final MessageRepository messages;
+  final PushRepository push;
   final StorageService _storage;
 
   Profile? myProfile;
@@ -43,7 +46,8 @@ class SessionState extends ChangeNotifier {
         profiles = ProfileRepository(client),
         alphabets = RemoteAlphabetRepository(client),
         conversations = ConversationRepository(client),
-        messages = MessageRepository(client) {
+        messages = MessageRepository(client),
+        push = PushRepository(client) {
     _authSub = auth.onAuthStateChange.listen((state) {
       if (state.event == AuthChangeEvent.signedIn) {
         _onSignedIn();
@@ -146,6 +150,26 @@ class SessionState extends ChangeNotifier {
   }
 
   Future<void> deleteConversation(String conversationId) => conversations.deleteConversation(conversationId);
+
+  /// Asks for notification permission and, once granted, registers this
+  /// browser for Web Push and saves the subscription server-side.
+  /// Returns whether it ended up subscribed.
+  Future<bool> enablePush(String vapidPublicKey) async {
+    final user = auth.currentUser;
+    if (user == null || vapidPublicKey.isEmpty) return false;
+    final sub = await PushService.subscribe(vapidPublicKey);
+    if (sub == null) return false;
+    try {
+      await push.saveSubscription(user.id, sub);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> disablePush() async {
+    await PushService.unsubscribe();
+  }
 
   @override
   void dispose() {

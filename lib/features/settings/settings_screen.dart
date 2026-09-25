@@ -2,11 +2,64 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_scope.dart';
 import '../../core/backend_scope.dart';
+import '../../core/config/env.dart';
+import '../../core/push/push_service.dart';
 import '../../theme/theme.dart';
 import '../auth/auth_gate.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _pushSupported = false;
+  bool _pushEnabled = false;
+  bool _pushBusy = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPushState();
+  }
+
+  Future<void> _loadPushState() async {
+    final supported = await PushService.isSupported();
+    final enabled = supported && await PushService.isSubscribed();
+    if (!mounted) return;
+    setState(() {
+      _pushSupported = supported;
+      _pushEnabled = enabled;
+      _pushBusy = false;
+    });
+  }
+
+  Future<void> _togglePush(bool value) async {
+    setState(() => _pushBusy = true);
+    final session = BackendScope.readOf(context);
+    if (value) {
+      final ok = await session.enablePush(Env.vapidPublicKey);
+      if (!mounted) return;
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Non è stato possibile attivare le notifiche. Controlla i permessi del browser.')),
+        );
+      }
+      setState(() {
+        _pushEnabled = ok;
+        _pushBusy = false;
+      });
+    } else {
+      await session.disablePush();
+      if (!mounted) return;
+      setState(() {
+        _pushEnabled = false;
+        _pushBusy = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +93,22 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   value: settings.customAlphabetEnabled,
                   onChanged: (v) => state.updateSettings((s) => s.copyWith(customAlphabetEnabled: v)),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              const _SectionLabel('Notifiche'),
+              _Card(
+                child: SwitchListTile(
+                  activeThumbColor: AppColors.fuchsia,
+                  title: Text('Notifiche push', style: AppTypography.body()),
+                  subtitle: Text(
+                    _pushSupported
+                        ? 'Ricevi una notifica quando arriva un nuovo messaggio, anche ad app chiusa.'
+                        : 'Non disponibili su questo browser. Su iPhone: aggiungi Together alla schermata Home, poi apri l\'app da lì.',
+                    style: AppTypography.bodySmall(),
+                  ),
+                  value: _pushEnabled,
+                  onChanged: (!_pushSupported || _pushBusy) ? null : _togglePush,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),

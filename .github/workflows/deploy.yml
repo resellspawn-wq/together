@@ -31,7 +31,8 @@ jobs:
           flutter build web --release \
             --base-href "/${{ github.event.repository.name }}/" \
             --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
+            --dart-define=VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

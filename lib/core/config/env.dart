@@ -8,5 +8,10 @@ class Env {
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
+  /// Public VAPID key for Web Push subscriptions. Safe to ship client-side
+  /// (unlike its private counterpart, which only ever lives in the
+  /// send-push Edge Function's secrets).
+  static const vapidPublicKey = String.fromEnvironment('VAPID_PUBLIC_KEY');
+
   static bool get isConfigured => supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 }
