@@ -260,5 +260,17 @@ create policy "messages insert own in own conversation" on public.messages
 
 -- ---------------------------------------------------------------------
 -- Realtime: broadcast row changes on messages so open chats update live.
+-- ADD TABLE isn't idempotent on its own (errors if already added), so
+-- this only runs it the first time.
 -- ---------------------------------------------------------------------
-alter publication supabase_realtime add table public.messages;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'messages'
+  ) then
+    alter publication supabase_realtime add table public.messages;
+  end if;
+end $$;
