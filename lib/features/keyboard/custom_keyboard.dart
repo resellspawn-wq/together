@@ -119,6 +119,10 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
     );
   }
 
+  // No "invio" key here — sending is handled by the single send button
+  // next to the live preview above the keyboard, so there's only ever
+  // one way to send a message on screen. That leaves the spacebar free
+  // to be the wide, centered bar people expect (like iOS' own keyboard).
   Widget _buildBottomRow() {
     return Row(
       children: [
@@ -126,18 +130,10 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
         _tabToggle(_KeyboardTab.symbols, '123'),
         _tabToggle(_KeyboardTab.emoji, '🙂'),
         Expanded(
-          flex: 5,
+          flex: 10,
           child: _key(
             onTap: () => widget.onCharacter(' '),
             child: Text('spazio', style: AppTypography.label(color: AppColors.inkSoft)),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: _key(
-            onTap: widget.onEnter,
-            filled: true,
-            child: const Icon(AppIcons.paperPlaneTilt, size: 18),
           ),
         ),
       ],

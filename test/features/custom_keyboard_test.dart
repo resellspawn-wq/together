@@ -50,9 +50,8 @@ void main() {
     expect(inserted, 'A');
   });
 
-  testWidgets('backspace and enter fire their callbacks', (tester) async {
+  testWidgets('backspace fires its callback', (tester) async {
     var backspaceCount = 0;
-    var enterCount = 0;
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -60,18 +59,34 @@ void main() {
             alphabet: Alphabet.blank(),
             onCharacter: (_) {},
             onBackspace: () => backspaceCount++,
-            onEnter: () => enterCount++,
+            onEnter: () {},
           ),
         ),
       ),
     );
 
     await tester.tap(find.byIcon(AppIcons.backspace));
-    await tester.tap(find.byIcon(AppIcons.paperPlaneTilt));
     await tester.pump();
 
     expect(backspaceCount, 1);
-    expect(enterCount, 1);
+  });
+
+  testWidgets('there is only one send control on screen: the keyboard has no invio key', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CustomKeyboard(
+            alphabet: Alphabet.blank(),
+            onCharacter: (_) {},
+            onBackspace: () {},
+            onEnter: () {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(AppIcons.paperPlaneTilt), findsNothing);
+    expect(find.text('spazio'), findsOneWidget);
   });
 
   testWidgets('switching to the numbers tab shows digits and punctuation, not letters', (tester) async {
