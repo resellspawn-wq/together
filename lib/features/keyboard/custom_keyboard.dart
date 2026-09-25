@@ -48,7 +48,17 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.white,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs + 2, vertical: AppSpacing.sm),
+      // Extra bottom padding beyond the top/sides: on iPhone the home-
+      // indicator swipe-up gesture area sits right where a flush-to-edge
+      // spacebar would be, making it easy to miss or accidentally trigger
+      // the swipe instead of a tap. This pushes the whole keyboard up a
+      // bit so the bottom row clears that zone.
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.xs + 2,
+        AppSpacing.sm,
+        AppSpacing.xs + 2,
+        AppSpacing.sm + AppSpacing.md,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

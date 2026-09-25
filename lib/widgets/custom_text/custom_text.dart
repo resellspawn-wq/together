@@ -47,12 +47,27 @@ class CustomText extends StatelessWidget {
     final resolvedColor = color ?? Theme.of(context).colorScheme.onSurface;
     final clusters = text.characters;
 
+    // Each *word* (run of non-space clusters) is grouped into one Row, so
+    // the outer Wrap only ever breaks the line between whole words — like
+    // WhatsApp — instead of between individual glyphs, which used to cut
+    // words in half wherever a line happened to end.
     final children = <Widget>[];
+    var currentWord = <Widget>[];
+
+    void flushWord() {
+      if (currentWord.isEmpty) return;
+      children.add(Row(mainAxisSize: MainAxisSize.min, children: currentWord));
+      currentWord = [];
+    }
+
     for (final cluster in clusters) {
-      if (_asciiLetter.hasMatch(cluster)) {
+      if (cluster == ' ') {
+        flushWord();
+        children.add(SizedBox(width: fontSize * 0.45, height: fontSize * 1.3));
+      } else if (_asciiLetter.hasMatch(cluster)) {
         final upper = cluster.toUpperCase();
         final glyph = alphabet.glyphFor(upper);
-        children.add(
+        currentWord.add(
           GlyphView(
             glyph: glyph,
             fallbackChar: cluster,
@@ -60,10 +75,8 @@ class CustomText extends StatelessWidget {
             color: resolvedColor,
           ),
         );
-      } else if (cluster == ' ') {
-        children.add(SizedBox(width: fontSize * 0.45, height: fontSize * 1.3));
       } else {
-        children.add(
+        currentWord.add(
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 1),
             child: Text(
@@ -74,6 +87,7 @@ class CustomText extends StatelessWidget {
         );
       }
     }
+    flushWord();
 
     return Wrap(
       alignment: switch (textAlign) {

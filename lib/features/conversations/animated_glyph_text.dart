@@ -153,27 +153,45 @@ class _AnimatedGlyphTextState extends State<AnimatedGlyphText> with SingleTicker
       animation: controller,
       builder: (context, _) {
         final elapsedMs = controller.value * totalMs;
+
+        // Group consecutive non-space slots into one Row per word, so the
+        // outer Wrap only breaks lines between whole words (WhatsApp-style)
+        // instead of between individual glyphs. Grouping is purely visual
+        // — each slot's own reveal progress/timing is unaffected.
+        final lineChildren = <Widget>[];
+        var currentWord = <Widget>[];
+        void flushWord() {
+          if (currentWord.isEmpty) return;
+          lineChildren.add(Row(mainAxisSize: MainAxisSize.min, children: currentWord));
+          currentWord = [];
+        }
+
+        for (final slot in _slots) {
+          final progress = ((elapsedMs - slot.startMs) / slot.durationMs).clamp(0.0, 1.0);
+          if (slot.character == ' ') {
+            flushWord();
+            lineChildren.add(SizedBox(width: widget.fontSize * 0.45, height: widget.fontSize * 1.3));
+          } else if (slot.glyph != null) {
+            currentWord.add(_AnimatedGlyph(
+              glyph: slot.glyph!,
+              color: resolvedColor,
+              size: widget.fontSize * 1.3,
+              progress: progress,
+            ));
+          } else {
+            currentWord.add(_RevealingChar(
+              character: slot.character,
+              fontSize: widget.fontSize,
+              color: resolvedColor,
+              progress: progress,
+            ));
+          }
+        }
+        flushWord();
+
         return Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            for (final slot in _slots)
-              if (slot.character == ' ')
-                SizedBox(width: widget.fontSize * 0.45, height: widget.fontSize * 1.3)
-              else if (slot.glyph != null)
-                _AnimatedGlyph(
-                  glyph: slot.glyph!,
-                  color: resolvedColor,
-                  size: widget.fontSize * 1.3,
-                  progress: ((elapsedMs - slot.startMs) / slot.durationMs).clamp(0.0, 1.0),
-                )
-              else
-                _RevealingChar(
-                  character: slot.character,
-                  fontSize: widget.fontSize,
-                  color: resolvedColor,
-                  progress: ((elapsedMs - slot.startMs) / slot.durationMs).clamp(0.0, 1.0),
-                ),
-          ],
+          children: lineChildren,
         );
       },
     );
