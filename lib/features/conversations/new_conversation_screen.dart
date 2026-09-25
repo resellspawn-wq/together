@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../core/backend_scope.dart';
 import '../../core/models/conversation.dart';
+import '../../core/models/profile.dart';
 import '../../theme/theme.dart';
 import 'conversation_screen.dart';
 
@@ -38,9 +39,16 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
         setState(() => _error = 'Nessun utente trovato con questo username.');
         return;
       }
-      final conversationId = await backend.conversations.startConversationWith(username);
       if (!mounted) return;
-      final conversation = Conversation(id: conversationId, createdAt: DateTime.now(), otherMember: profile);
+      final nickname = await _askNickname(profile.displayName);
+      if (nickname == null) return; // user cancelled
+
+      final conversationId = await backend.conversations.startConversationWith(username, nickname: nickname);
+      if (!mounted) return;
+      final named = nickname.trim().isEmpty
+          ? profile
+          : Profile(id: profile.id, username: profile.username, displayName: nickname.trim());
+      final conversation = Conversation(id: conversationId, createdAt: DateTime.now(), otherMember: named);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => ConversationScreen(conversation: conversation)),
       );
@@ -49,6 +57,34 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  /// Asks what name to give this contact before adding it, prefilled with
+  /// their real display name. Returns null if the user cancels.
+  Future<String?> _askNickname(String suggested) async {
+    final controller = TextEditingController(text: suggested);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Che nome vuoi dargli?'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: AppTypography.body(),
+          decoration: const InputDecoration(hintText: 'Nome del contatto'),
+          onSubmitted: (v) => Navigator.of(context).pop(v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('ANNULLA')),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: const Text('CONTINUA'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return result;
   }
 
   @override

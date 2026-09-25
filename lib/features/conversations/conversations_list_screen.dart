@@ -103,7 +103,7 @@ class _ConversationsListScreenState extends State<ConversationsListScreen> {
                         separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm + 2),
                         itemBuilder: (context, index) {
                           final c = conversations[index];
-                          return _ConversationTile(conversation: c, index: index);
+                          return _ConversationTile(conversation: c, index: index, onChanged: _refresh);
                         },
                       ),
                     );
@@ -121,8 +121,9 @@ class _ConversationsListScreenState extends State<ConversationsListScreen> {
 class _ConversationTile extends StatelessWidget {
   final Conversation conversation;
   final int index;
+  final VoidCallback onChanged;
 
-  const _ConversationTile({required this.conversation, required this.index});
+  const _ConversationTile({required this.conversation, required this.index, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -140,9 +141,12 @@ class _ConversationTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.lg),
         child: InkWell(
           borderRadius: BorderRadius.circular(AppRadii.lg),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => ConversationScreen(conversation: conversation)),
-          ),
+          onTap: () async {
+            final changed = await Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => ConversationScreen(conversation: conversation)),
+            );
+            if (changed == true) onChanged();
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             child: Row(

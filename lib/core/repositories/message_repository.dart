@@ -34,4 +34,11 @@ class MessageRepository {
       'text': text,
     });
   }
+
+  /// "Svuota chat": deletes every message in the conversation for both
+  /// members. The realtime stream from [watchConversation] reflects this
+  /// immediately.
+  Future<void> clearMessages(String conversationId) async {
+    await _client.from('messages').delete().eq('conversation_id', conversationId);
+  }
 }

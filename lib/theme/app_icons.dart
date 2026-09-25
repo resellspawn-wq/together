@@ -30,6 +30,7 @@ abstract final class AppIcons {
   static const check = IconData(0xe182, fontFamily: _family, fontPackage: _package);
   static const clock = IconData(0xe19a, fontFamily: _family, fontPackage: _package);
   static const cloudSlash = IconData(0xe1b6, fontFamily: _family, fontPackage: _package);
+  static const dotsThreeVertical = IconData(0xe208, fontFamily: _family, fontPackage: _package);
   static const envelopeSimple = IconData(0xe218, fontFamily: _family, fontPackage: _package);
   static const eye = IconData(0xe220, fontFamily: _family, fontPackage: _package);
   static const eyeSlash = IconData(0xe224, fontFamily: _family, fontPackage: _package);

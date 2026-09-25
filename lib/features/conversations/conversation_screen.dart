@@ -8,6 +8,7 @@ import '../../core/backend_scope.dart';
 import '../../core/models/alphabet.dart';
 import '../../core/models/conversation.dart';
 import '../../core/models/message.dart';
+import '../../core/models/profile.dart';
 import '../../core/session_state.dart';
 import '../../theme/theme.dart';
 import '../keyboard/custom_keyboard.dart';
@@ -30,6 +31,8 @@ class ConversationScreen extends StatefulWidget {
 class _ConversationScreenState extends State<ConversationScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  late Profile _otherMember = widget.conversation.otherMember;
 
   StreamSubscription<List<Message>>? _sub;
   List<Message> _messages = [];
@@ -174,6 +177,86 @@ class _ConversationScreenState extends State<ConversationScreen> {
     });
   }
 
+  Future<void> _renameContact() async {
+    final controller = TextEditingController(text: _otherMember.displayName);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cambia nome contatto'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: AppTypography.body(),
+          onSubmitted: (v) => Navigator.of(context).pop(v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('ANNULLA')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text), child: const Text('SALVA')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (newName == null || newName.trim().isEmpty || !mounted) return;
+
+    final trimmed = newName.trim();
+    setState(() => _otherMember = Profile(id: _otherMember.id, username: _otherMember.username, displayName: trimmed));
+    try {
+      await BackendScope.readOf(context).renameConversation(widget.conversation.id, trimmed);
+    } catch (_) {
+      // Best-effort — the name still shows locally; it'll retry to save
+      // next time this screen reloads the conversation list.
+    }
+  }
+
+  Future<bool> _confirm({required String title, required String message, required String confirmLabel}) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('ANNULLA')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(confirmLabel)),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  Future<void> _clearChat() async {
+    final ok = await _confirm(
+      title: 'Svuotare la chat?',
+      message: 'Tutti i messaggi con ${_otherMember.displayName} verranno eliminati per entrambi.',
+      confirmLabel: 'SVUOTA',
+    );
+    if (!ok || !mounted) return;
+    try {
+      await BackendScope.readOf(context).clearChat(widget.conversation.id);
+      if (mounted) setState(() => _messages = []);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non è stato possibile svuotare la chat.')));
+      }
+    }
+  }
+
+  Future<void> _deleteContact() async {
+    final ok = await _confirm(
+      title: 'Eliminare il contatto?',
+      message: 'La conversazione con ${_otherMember.displayName} verrà eliminata per entrambi.',
+      confirmLabel: 'ELIMINA',
+    );
+    if (!ok || !mounted) return;
+    try {
+      await BackendScope.readOf(context).deleteConversation(widget.conversation.id);
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non è stato possibile eliminare il contatto.')));
+      }
+    }
+  }
+
   Alphabet _alphabetFor(String senderId, Alphabet myAlphabet, SessionState session) {
     if (senderId == _myId) return myAlphabet;
     final cached = session.cachedAlphabetFor(senderId);
@@ -190,7 +273,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     final session = BackendScope.of(context);
     final customEnabled = appState.settings.customAlphabetEnabled;
     final allMessages = [..._messages, ..._pending]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    final other = widget.conversation.otherMember;
+    final other = _otherMember;
 
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.background),
@@ -209,6 +292,26 @@ class _ConversationScreenState extends State<ConversationScreen> {
               Text('@${other.username}', style: AppTypography.label()),
             ],
           ),
+          actions: [
+            PopupMenuButton<String>(
+              icon: const Icon(AppIcons.dotsThreeVertical),
+              onSelected: (value) {
+                switch (value) {
+                  case 'rename':
+                    _renameContact();
+                  case 'clear':
+                    _clearChat();
+                  case 'delete':
+                    _deleteContact();
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 'rename', child: Text('Cambia nome')),
+                PopupMenuItem(value: 'clear', child: Text('Svuota chat')),
+                PopupMenuItem(value: 'delete', child: Text('Elimina contatto')),
+              ],
+            ),
+          ],
           bottom: _offline
               ? PreferredSize(
                   preferredSize: const Size.fromHeight(32),

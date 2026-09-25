@@ -131,6 +131,22 @@ class SessionState extends ChangeNotifier {
     return conversations.listConversations(user.id);
   }
 
+  Future<void> renameConversation(String conversationId, String nickname) {
+    final user = auth.currentUser!;
+    return conversations.renameConversation(
+      conversationId: conversationId,
+      currentUserId: user.id,
+      nickname: nickname,
+    );
+  }
+
+  Future<void> clearChat(String conversationId) async {
+    await messages.clearMessages(conversationId);
+    await _storage.cacheMessages(conversationId, const []);
+  }
+
+  Future<void> deleteConversation(String conversationId) => conversations.deleteConversation(conversationId);
+
   @override
   void dispose() {
     _authSub?.cancel();
