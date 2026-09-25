@@ -1,7 +1,20 @@
-// Wraps Flutter's own generated service worker (offline caching) and adds
-// Web Push handling on top of it. Registered instead of
-// flutter_service_worker.js directly — see web/flutter_bootstrap.js.
-importScripts('flutter_service_worker.js');
+// Handles Web Push, registered instead of Flutter's own
+// flutter_service_worker.js — see web/flutter_bootstrap.js.
+//
+// This deliberately does NOT importScripts('flutter_service_worker.js'):
+// in current Flutter web builds that generated file no longer does asset
+// caching — its 'activate' handler just unregisters itself and reloads
+// every open tab. Importing it here made *this* worker (push listeners
+// included) self-destruct moments after installing, which is why push
+// silently stopped working. Since it has nothing worth inheriting, this
+// worker is fully standalone instead.
+self.addEventListener('install', () => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
 
 self.addEventListener('push', (event) => {
   let data = {};
