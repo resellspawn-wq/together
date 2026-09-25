@@ -18,6 +18,11 @@ class AuthGate extends StatelessWidget {
     if (!session.isSignedIn) return const LoginScreen();
 
     final appState = AppScope.of(context);
-    return appState.settings.onboardingComplete ? const HomeScreen() : const OnboardingWelcomeScreen();
+    // A complete alphabet counts as onboarded even if `onboardingComplete`
+    // was never set on this device — e.g. it was just pulled from the
+    // cloud on a new device (see _pullAlphabetIfLocalIsEmpty in main.dart),
+    // which fills in the glyphs but doesn't flip that local flag.
+    final onboarded = appState.settings.onboardingComplete || appState.alphabet.isComplete;
+    return onboarded ? const HomeScreen() : const OnboardingWelcomeScreen();
   }
 }
