@@ -44,6 +44,7 @@ abstract final class AppIcons {
   static const paperPlaneTilt = IconData(0xe398, fontFamily: _family, fontPackage: _package);
   static const pencilSimple = IconData(0xe3b4, fontFamily: _family, fontPackage: _package);
   static const plusCircle = IconData(0xe3d6, fontFamily: _family, fontPackage: _package);
+  static const signOut = IconData(0xe42a, fontFamily: _family, fontPackage: _package);
   static const smileyWink = IconData(0xe666, fontFamily: _family, fontPackage: _package);
   static const trash = IconData(0xe4a6, fontFamily: _family, fontPackage: _package);
   static const userCircle = IconData(0xe4c4, fontFamily: _family, fontPackage: _package);

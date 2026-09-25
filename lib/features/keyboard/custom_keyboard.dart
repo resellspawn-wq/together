@@ -206,7 +206,13 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
           type: MaterialType.transparency,
           child: InkWell(
             borderRadius: BorderRadius.circular(AppRadii.sm),
-            onTap: onTap,
+            // Fires on touch-down rather than waiting for the full tap
+            // gesture to resolve on release — shaves the recognition
+            // delay off every keystroke, which matters a lot when typing
+            // fast. onTap is kept (as a no-op trigger already handled by
+            // onTapDown) purely so the ink ripple still plays normally.
+            onTapDown: (_) => onTap(),
+            onTap: () {},
             child: SizedBox(
               height: 44,
               child: Center(

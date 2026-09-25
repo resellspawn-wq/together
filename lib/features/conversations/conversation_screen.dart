@@ -390,36 +390,14 @@ class _ComposeArea extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
       color: AppColors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          LiveGlyphPreview(controller: controller, alphabet: alphabet, customEnabled: customEnabled),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  readOnly: true,
-                  showCursor: true,
-                  cursorColor: AppColors.fuchsia,
-                  keyboardType: TextInputType.none,
-                  maxLines: 3,
-                  minLines: 1,
-                  style: AppTypography.messageText(),
-                  decoration: InputDecoration(
-                    hintText: 'Messaggio',
-                    hintStyle: AppTypography.body(color: AppColors.inkSoft),
-                    isDense: true,
-                    fillColor: AppColors.mist,
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              _SendButton(onPressed: onSend),
-            ],
+          Expanded(
+            child: LiveGlyphPreview(controller: controller, alphabet: alphabet, customEnabled: customEnabled),
           ),
+          const SizedBox(width: AppSpacing.sm),
+          _SendButton(onPressed: onSend),
         ],
       ),
     );

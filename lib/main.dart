@@ -5,6 +5,7 @@ import 'core/app_scope.dart';
 import 'core/app_state.dart';
 import 'core/backend_scope.dart';
 import 'core/config/env.dart';
+import 'core/models/alphabet.dart';
 import 'core/session_state.dart';
 import 'core/storage/storage_service.dart';
 import 'features/auth/auth_gate.dart';
@@ -37,9 +38,37 @@ void main() async {
     lastUserId = currentUserId;
     storage.useNamespace(currentUserId);
     appState.reload();
+    if (currentUserId != null) _pullAlphabetIfLocalIsEmpty(sessionState, appState, currentUserId);
   });
+  // Cover the "already signed in when the app opens" case too (the
+  // listener above only fires on a *change*).
+  final initialUserId = lastUserId;
+  if (initialUserId != null) _pullAlphabetIfLocalIsEmpty(sessionState, appState, initialUserId);
 
   runApp(TogetherApp(appState: appState, sessionState: sessionState));
+}
+
+/// The alphabet is local-first (so the editor works instantly and
+/// offline), unlike conversations/messages which are always fetched live
+/// from Supabase — that's why logging into the same account on a new
+/// device used to show conversations immediately but an empty alphabet.
+/// This pulls the account's alphabet down from the cloud once, the first
+/// time it's needed locally (i.e. only when this device has nothing
+/// saved yet — an existing local alphabet is never overwritten).
+Future<void> _pullAlphabetIfLocalIsEmpty(SessionState session, AppState appState, String userId) async {
+  if (appState.alphabet.completedCount > 0) return;
+  try {
+    final remote = await session.alphabets.fetchAlphabet(userId);
+    for (final letter in kAlphabetLetters) {
+      final glyph = remote.glyphFor(letter);
+      if (glyph != null && glyph.hasStrokes) {
+        await appState.saveGlyph(glyph);
+      }
+    }
+  } catch (_) {
+    // Offline or not yet synced anywhere — the editor still works locally
+    // and will push up whatever gets drawn on this device from here on.
+  }
 }
 
 class TogetherApp extends StatefulWidget {
