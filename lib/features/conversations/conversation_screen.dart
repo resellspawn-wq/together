@@ -11,6 +11,7 @@ import '../../core/models/message.dart';
 import '../../core/models/profile.dart';
 import '../../core/session_state.dart';
 import '../../core/media/image_picker_service.dart';
+import '../../core/realtime/typing_channel.dart';
 import '../../theme/theme.dart';
 import '../keyboard/custom_keyboard.dart';
 import 'animated_glyph_text.dart';
@@ -18,6 +19,7 @@ import 'attachment_bubble.dart';
 import 'conversation_settings_screen.dart';
 import 'media_gallery_screen.dart';
 import 'live_glyph_preview.dart';
+import 'typing_indicator.dart';
 import '../../widgets/app_text.dart';
 
 /// A single 1-to-1 conversation. Messages are plain Unicode text in the
@@ -49,6 +51,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
   bool _firstSnapshot = true;
   bool _uploadingAttachment = false;
 
+  late final TypingChannel _typingChannel;
+  bool _amTyping = false;
+  bool _otherTyping = false;
+  Timer? _otherTypingTimeout;
+
   /// Message ids that have already been shown once — anything in here
   /// renders instantly (history); anything not in here plays the
   /// handwriting-reveal once, then gets added so it never replays (e.g.
@@ -61,6 +68,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
   void initState() {
     super.initState();
     final backend = BackendScope.readOf(context);
+    _typingChannel = TypingChannel(backend.client);
+    _typingChannel.connect(conversationId: widget.conversation.id, onTyping: _onTypingEvent);
+    _controller.addListener(_onComposeTextChanged);
     final cached = backend.loadCachedMessages(widget.conversation.id);
     if (cached.isNotEmpty) {
       _messages = cached;
@@ -98,9 +108,39 @@ class _ConversationScreenState extends State<ConversationScreen> {
   void dispose() {
     _sub?.cancel();
     _retryTimer?.cancel();
+    _otherTypingTimeout?.cancel();
+    _controller.removeListener(_onComposeTextChanged);
+    if (_amTyping) _typingChannel.sendTyping(_myId, false);
+    _typingChannel.dispose();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Broadcasts our own typing state whenever it flips — not on every
+  /// keystroke, just the empty<->non-empty transitions (starting to
+  /// type, clearing the field, and — since `_send()` clears the
+  /// controller — sending, which is exactly when it should disappear for
+  /// the other person too).
+  void _onComposeTextChanged() {
+    final hasText = _controller.text.trim().isNotEmpty;
+    if (hasText == _amTyping) return;
+    _amTyping = hasText;
+    _typingChannel.sendTyping(_myId, hasText);
+  }
+
+  void _onTypingEvent(String userId, bool typing) {
+    if (userId == _myId || !mounted) return;
+    setState(() => _otherTyping = typing);
+    if (typing) _scrollToBottom();
+    _otherTypingTimeout?.cancel();
+    if (typing) {
+      // Guards against a stuck indicator if the other device closes the
+      // tab (or loses connection) mid-type without ever sending "false".
+      _otherTypingTimeout = Timer(const Duration(seconds: 6), () {
+        if (mounted) setState(() => _otherTyping = false);
+      });
+    }
   }
 
   /// The recipient (never the sender) stamps delivered/read on the
@@ -363,6 +403,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
                               );
                             },
                           ),
+              ),
+              AnimatedSwitcher(
+                duration: AppMotion.fast,
+                child: _otherTyping
+                    ? Padding(
+                        key: const ValueKey('typing'),
+                        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
+                        child: const TypingIndicator(),
+                      )
+                    : const SizedBox.shrink(key: ValueKey('not-typing')),
               ),
               _ComposeArea(
                 controller: _controller,
