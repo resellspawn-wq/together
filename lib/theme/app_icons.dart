@@ -39,6 +39,12 @@ abstract final class AppIcons {
   static const gearSix = IconData(0xe272, fontFamily: _family, fontPackage: _package);
   static const gridFour = IconData(0xe296, fontFamily: _family, fontPackage: _package);
   static const heart = IconData(0xe2a8, fontFamily: _family, fontPackage: _package);
+  static const image = IconData(0xe2ca, fontFamily: _family, fontPackage: _package);
+  static const paperclip = IconData(0xe39a, fontFamily: _family, fontPackage: _package);
+  static const play = IconData(0xe3d0, fontFamily: _family, fontPackage: _package);
+  static const playCircle = IconData(0xe3d2, fontFamily: _family, fontPackage: _package);
+  static const x = IconData(0xe4f6, fontFamily: _family, fontPackage: _package);
+  static const checkCircle = IconData(0xe184, fontFamily: _family, fontPackage: _package);
   static const keyboard = IconData(0xe2d8, fontFamily: _family, fontPackage: _package);
   static const lockSimple = IconData(0xe308, fontFamily: _family, fontPackage: _package);
   static const magnifyingGlass = IconData(0xe30c, fontFamily: _family, fontPackage: _package);

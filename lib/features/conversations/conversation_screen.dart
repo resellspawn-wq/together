@@ -10,10 +10,13 @@ import '../../core/models/conversation.dart';
 import '../../core/models/message.dart';
 import '../../core/models/profile.dart';
 import '../../core/session_state.dart';
+import '../../core/media/image_picker_service.dart';
 import '../../theme/theme.dart';
 import '../keyboard/custom_keyboard.dart';
 import 'animated_glyph_text.dart';
+import 'attachment_bubble.dart';
 import 'conversation_settings_screen.dart';
+import 'media_gallery_screen.dart';
 import 'live_glyph_preview.dart';
 import '../../widgets/app_text.dart';
 
@@ -44,6 +47,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Timer? _retryTimer;
   int _tempIdCounter = 0;
   bool _firstSnapshot = true;
+  bool _uploadingAttachment = false;
 
   /// Message ids that have already been shown once — anything in here
   /// renders instantly (history); anything not in here plays the
@@ -176,7 +180,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       await backend.messages.send(
         conversationId: message.conversationId,
         senderId: message.senderId,
-        text: message.text,
+        text: message.text!,
       );
       if (!mounted) return;
       setState(() => _pending.removeWhere((p) => p.id == message.id));
@@ -194,6 +198,29 @@ class _ConversationScreenState extends State<ConversationScreen> {
         _attemptSend(m);
       }
     });
+  }
+
+  Future<void> _pickAndSendAttachment() async {
+    final picked = await ImagePickerService.pickMedia();
+    if (picked == null || !mounted) return;
+
+    setState(() => _uploadingAttachment = true);
+    final backend = BackendScope.readOf(context);
+    try {
+      final url = await backend.messages.uploadAttachment(widget.conversation.id, picked.bytes, extension: picked.extension);
+      await backend.messages.sendAttachment(
+        conversationId: widget.conversation.id,
+        senderId: _myId,
+        attachmentUrl: url,
+        attachmentType: picked.isVideo ? AttachmentType.video : AttachmentType.image,
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: AppText('Invio non riuscito. Riprova.')));
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingAttachment = false);
+    }
   }
 
   Future<void> _openSettings() async {
@@ -240,13 +267,35 @@ class _ConversationScreenState extends State<ConversationScreen> {
             icon: const Icon(AppIcons.arrowLeft),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppText(other.displayName, style: AppTypography.titleCompact()),
-              AppText('@${other.username}', style: AppTypography.label()),
-            ],
+          titleSpacing: 0,
+          title: GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MediaGalleryScreen(conversationId: widget.conversation.id, otherDisplayName: other.displayName),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppColors.blush,
+                  child: AppText(
+                    other.displayName.characters.first.toUpperCase(),
+                    style: AppTypography.label(color: AppColors.berry),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppText(other.displayName, style: AppTypography.titleCompact()),
+                    AppText('@${other.username}', style: AppTypography.label()),
+                  ],
+                ),
+              ],
+            ),
           ),
           actions: [
             IconButton(
@@ -320,6 +369,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 alphabet: appState.alphabet,
                 customEnabled: customEnabled,
                 onSend: _send,
+                onAttach: _uploadingAttachment ? null : _pickAndSendAttachment,
+                attaching: _uploadingAttachment,
               ),
               CustomKeyboard(
                 alphabet: appState.alphabet,
@@ -378,14 +429,19 @@ class _MessageBubble extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedGlyphText(
-                message.text,
-                alphabet: alphabet,
-                enabled: customEnabled,
-                animate: animate,
-                fontSize: 18,
-                color: textColor,
-              ),
+              if (message.hasAttachment) ...[
+                AttachmentBubble(url: message.attachmentUrl!, type: message.attachmentType!),
+                if (message.text != null && message.text!.isNotEmpty) const SizedBox(height: AppSpacing.xs),
+              ],
+              if (message.text != null && message.text!.isNotEmpty)
+                AnimatedGlyphText(
+                  message.text!,
+                  alphabet: alphabet,
+                  enabled: customEnabled,
+                  animate: animate,
+                  fontSize: 18,
+                  color: textColor,
+                ),
               const SizedBox(height: AppSpacing.xs),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -434,12 +490,16 @@ class _ComposeArea extends StatelessWidget {
   final Alphabet alphabet;
   final bool customEnabled;
   final VoidCallback onSend;
+  final VoidCallback? onAttach;
+  final bool attaching;
 
   const _ComposeArea({
     required this.controller,
     required this.alphabet,
     required this.customEnabled,
     required this.onSend,
+    required this.onAttach,
+    required this.attaching,
   });
 
   @override
@@ -450,6 +510,16 @@ class _ComposeArea extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          IconButton(
+            onPressed: onAttach,
+            icon: attaching
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.fuchsia),
+                  )
+                : const Icon(AppIcons.paperclip, color: AppColors.berry),
+          ),
           Expanded(
             child: LiveGlyphPreview(controller: controller, alphabet: alphabet, customEnabled: customEnabled),
           ),
