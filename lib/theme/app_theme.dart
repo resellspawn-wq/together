@@ -6,12 +6,17 @@ import 'app_spacing.dart';
 import 'app_typography.dart';
 
 /// Builds the single [ThemeData] for Together's "soft glam" editorial
-/// look. Screens must read colors/type/spacing/radii/motion from the
-/// theme (`Theme.of(context)`) and the sibling token classes
-/// (AppColors/AppGradients/AppTypography/AppSpacing/AppRadii/AppShadows/
-/// AppMotion) — never a hardcoded `Color(...)`, font, or raw duration.
+/// look — in whichever of its light/dark voices [AppColors.isDark]
+/// currently resolves to. Screens must read colors/type/spacing/radii/
+/// motion from the theme (`Theme.of(context)`) and the sibling token
+/// classes (AppColors/AppGradients/AppTypography/AppSpacing/AppRadii/
+/// AppShadows/AppMotion) — never a hardcoded `Color(...)`, font, or raw
+/// duration.
 abstract final class AppTheme {
-  static ThemeData get light {
+  /// Always call this fresh (never cache the result) — it reflects
+  /// whatever [AppColors.isDark] is *right now*, which main.dart updates
+  /// before every rebuild of the app root.
+  static ThemeData get current {
     final scheme = _colorScheme;
 
     return ThemeData(
@@ -44,7 +49,7 @@ abstract final class AppTheme {
         elevation: 0,
         centerTitle: false,
         titleTextStyle: AppTypography.titleCompact(),
-        iconTheme: const IconThemeData(color: AppColors.ink, weight: 300),
+        iconTheme: IconThemeData(color: AppColors.ink, weight: 300),
       ),
 
       // Cards render flat here; screens apply AppShadows themselves via
@@ -74,7 +79,7 @@ abstract final class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.ink,
-          side: const BorderSide(color: AppColors.chromeMid, width: 1.2),
+          side: BorderSide(color: AppColors.chromeMid, width: 1.2),
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.pill)),
           textStyle: AppTypography.button(color: AppColors.ink),
@@ -99,30 +104,30 @@ abstract final class AppTheme {
         labelStyle: AppTypography.bodySmall(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.pill),
-          borderSide: const BorderSide(color: AppColors.chromeMid, width: 1),
+          borderSide: BorderSide(color: AppColors.chromeMid, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.pill),
-          borderSide: const BorderSide(color: AppColors.chromeMid, width: 1),
+          borderSide: BorderSide(color: AppColors.chromeMid, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.pill),
-          borderSide: const BorderSide(color: AppColors.fuchsia, width: 1.6),
+          borderSide: BorderSide(color: AppColors.fuchsia, width: 1.6),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.pill),
-          borderSide: const BorderSide(color: AppColors.berry, width: 1.4),
+          borderSide: BorderSide(color: AppColors.berry, width: 1.4),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
       ),
 
-      dividerTheme: const DividerThemeData(
+      dividerTheme: DividerThemeData(
         color: AppColors.chromeMid,
         thickness: 0.6,
         space: AppSpacing.xl,
       ),
 
-      iconTheme: const IconThemeData(color: AppColors.ink),
+      iconTheme: IconThemeData(color: AppColors.ink),
 
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.ink,
@@ -131,38 +136,38 @@ abstract final class AppTheme {
         behavior: SnackBarBehavior.floating,
       ),
 
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
+      progressIndicatorTheme: ProgressIndicatorThemeData(
         color: AppColors.fuchsia,
       ),
     );
   }
 
-  static final ColorScheme _colorScheme = ColorScheme(
-    brightness: Brightness.light,
-    primary: AppColors.fuchsia,
-    onPrimary: AppColors.white,
-    primaryContainer: AppColors.blush,
-    onPrimaryContainer: AppColors.berry,
-    secondary: AppColors.mauve,
-    onSecondary: AppColors.white,
-    secondaryContainer: AppColors.mist,
-    onSecondaryContainer: AppColors.ink,
-    tertiary: AppColors.chromeMid,
-    onTertiary: AppColors.ink,
-    surface: AppColors.white,
-    onSurface: AppColors.ink,
-    surfaceContainerHighest: AppColors.mist,
-    onSurfaceVariant: AppColors.inkSoft,
-    outline: AppColors.chromeMid,
-    outlineVariant: AppColors.chromeLight,
-    error: AppColors.berry,
-    onError: AppColors.white,
-    errorContainer: AppColors.blush,
-    onErrorContainer: AppColors.berry,
-    shadow: AppColors.mauve,
-    scrim: AppColors.ink,
-    inverseSurface: AppColors.ink,
-    onInverseSurface: AppColors.white,
-    inversePrimary: AppColors.blush,
-  );
+  static ColorScheme get _colorScheme => ColorScheme(
+        brightness: AppColors.isDark ? Brightness.dark : Brightness.light,
+        primary: AppColors.fuchsia,
+        onPrimary: AppColors.white,
+        primaryContainer: AppColors.blush,
+        onPrimaryContainer: AppColors.berry,
+        secondary: AppColors.mauve,
+        onSecondary: AppColors.white,
+        secondaryContainer: AppColors.mist,
+        onSecondaryContainer: AppColors.ink,
+        tertiary: AppColors.chromeMid,
+        onTertiary: AppColors.ink,
+        surface: AppColors.white,
+        onSurface: AppColors.ink,
+        surfaceContainerHighest: AppColors.mist,
+        onSurfaceVariant: AppColors.inkSoft,
+        outline: AppColors.chromeMid,
+        outlineVariant: AppColors.chromeLight,
+        error: AppColors.berry,
+        onError: AppColors.white,
+        errorContainer: AppColors.blush,
+        onErrorContainer: AppColors.berry,
+        shadow: AppColors.mauve,
+        scrim: AppColors.ink,
+        inverseSurface: AppColors.ink,
+        onInverseSurface: AppColors.white,
+        inversePrimary: AppColors.blush,
+      );
 }

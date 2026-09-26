@@ -127,7 +127,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.background),
+      decoration: BoxDecoration(gradient: AppGradients.background),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -166,7 +166,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                   const SizedBox(height: AppSpacing.md),
                   _Card(
                     child: ListTile(
-                      leading: const Icon(AppIcons.trash, color: AppColors.berry),
+                      leading: Icon(AppIcons.trash, color: AppColors.berry),
                       title: AppText('Elimina contatto', style: AppTypography.body(color: AppColors.berry)),
                       onTap: _deleteContact,
                     ),

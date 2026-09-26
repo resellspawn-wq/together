@@ -89,7 +89,7 @@ class _EditorScreenState extends State<EditorScreen> {
     final completed = alphabet.completedCount;
 
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.background),
+      decoration: BoxDecoration(gradient: AppGradients.background),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(

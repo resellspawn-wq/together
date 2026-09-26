@@ -52,7 +52,7 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: AppColors.white),
+        iconTheme: IconThemeData(color: AppColors.white),
         leading: IconButton(
           icon: const Icon(AppIcons.x),
           onPressed: () => Navigator.of(context).pop(),
@@ -73,11 +73,11 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
 
   Widget _buildVideo() {
     if (_error != null) {
-      return Text(_error!, style: const TextStyle(color: AppColors.white));
+      return Text(_error!, style: TextStyle(color: AppColors.white));
     }
     final controller = _controller;
     if (controller == null || !_ready) {
-      return const CircularProgressIndicator(color: AppColors.white);
+      return CircularProgressIndicator(color: AppColors.white);
     }
     return GestureDetector(
       onTap: () => setState(() => controller.value.isPlaying ? controller.pause() : controller.play()),
@@ -88,7 +88,7 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
           children: [
             VideoPlayer(controller),
             if (!controller.value.isPlaying)
-              const Icon(AppIcons.playCircle, color: AppColors.white, size: 64),
+              Icon(AppIcons.playCircle, color: AppColors.white, size: 64),
           ],
         ),
       ),

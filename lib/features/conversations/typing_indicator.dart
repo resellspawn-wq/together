@@ -35,10 +35,10 @@ class _Dot extends StatelessWidget {
   final int delay;
   const _Dot({required this.delay});
 
-  static const _dot = DecoratedBox(
-    decoration: BoxDecoration(color: AppColors.fuchsia, shape: BoxShape.circle),
-    child: SizedBox(width: 8, height: 8),
-  );
+  static DecoratedBox get _dot => DecoratedBox(
+        decoration: BoxDecoration(color: AppColors.fuchsia, shape: BoxShape.circle),
+        child: const SizedBox(width: 8, height: 8),
+      );
 
   @override
   Widget build(BuildContext context) {

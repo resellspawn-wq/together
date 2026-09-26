@@ -15,46 +15,52 @@ import 'app_colors.dart';
 ///   twice per screen — it's a flourish, not body text.
 /// - **UI text** (Manrope): everything else — body copy, labels,
 ///   buttons, message bubbles.
+///
+/// Every `color` parameter here defaults to `null` (not directly to an
+/// [AppColors] value) purely because Dart requires default parameter
+/// values to be compile-time constants, and [AppColors] fields are
+/// runtime getters (they depend on light/dark mode) — so the actual
+/// default is resolved inside each function body instead.
 abstract final class AppTypography {
   // ---------------------------------------------------------------------
   // Titles — Bricolage Grotesque
   // ---------------------------------------------------------------------
 
   /// The largest headline size, for splash/hero moments. ~64px, w200.
-  static TextStyle hero({Color color = AppColors.ink}) => GoogleFonts.bricolageGrotesque(
+  static TextStyle hero({Color? color}) => GoogleFonts.bricolageGrotesque(
         fontSize: 64,
         fontWeight: FontWeight.w200,
         letterSpacing: -2.2,
         height: 0.95,
-        color: color,
+        color: color ?? AppColors.ink,
       );
 
   /// A screen-level title (e.g. a chat header, a login headline). ~40px, w300.
-  static TextStyle display({Color color = AppColors.ink}) => GoogleFonts.bricolageGrotesque(
+  static TextStyle display({Color? color}) => GoogleFonts.bricolageGrotesque(
         fontSize: 40,
         fontWeight: FontWeight.w300,
         letterSpacing: -1.4,
         height: 1.0,
-        color: color,
+        color: color ?? AppColors.ink,
       );
 
   /// A section heading within a screen. ~24px, w300.
-  static TextStyle sectionTitle({Color color = AppColors.ink}) => GoogleFonts.bricolageGrotesque(
+  static TextStyle sectionTitle({Color? color}) => GoogleFonts.bricolageGrotesque(
         fontSize: 24,
         fontWeight: FontWeight.w300,
         letterSpacing: -0.6,
         height: 1.05,
-        color: color,
+        color: color ?? AppColors.ink,
       );
 
   /// A compact title for list rows / app bars that still want the
   /// editorial voice at a small size. ~19px, w300.
-  static TextStyle titleCompact({Color color = AppColors.ink}) => GoogleFonts.bricolageGrotesque(
+  static TextStyle titleCompact({Color? color}) => GoogleFonts.bricolageGrotesque(
         fontSize: 19,
         fontWeight: FontWeight.w300,
         letterSpacing: -0.3,
         height: 1.1,
-        color: color,
+        color: color ?? AppColors.ink,
       );
 
   // ---------------------------------------------------------------------
@@ -64,9 +70,9 @@ abstract final class AppTypography {
   /// The single cursive accent word. Size it to sit visually with the
   /// title style it's paired with (script fonts read smaller at the same
   /// px size, so this defaults larger than [display]).
-  static TextStyle accent({double fontSize = 44, Color color = AppColors.fuchsia}) => GoogleFonts.yellowtail(
+  static TextStyle accent({double fontSize = 44, Color? color}) => GoogleFonts.yellowtail(
         fontSize: fontSize,
-        color: color,
+        color: color ?? AppColors.fuchsia,
         height: 1.0,
       );
 
@@ -74,50 +80,50 @@ abstract final class AppTypography {
   // UI text — Manrope
   // ---------------------------------------------------------------------
 
-  static TextStyle body({Color color = AppColors.ink}) => GoogleFonts.manrope(
+  static TextStyle body({Color? color}) => GoogleFonts.manrope(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         height: 1.4,
-        color: color,
+        color: color ?? AppColors.ink,
       );
 
-  static TextStyle bodySmall({Color color = AppColors.inkSoft}) => GoogleFonts.manrope(
+  static TextStyle bodySmall({Color? color}) => GoogleFonts.manrope(
         fontSize: 13,
         fontWeight: FontWeight.w500,
         height: 1.35,
-        color: color,
+        color: color ?? AppColors.inkSoft,
       );
 
   /// Small uppercase-style label/eyebrow text (kickers, field labels).
-  static TextStyle label({Color color = AppColors.inkSoft}) => GoogleFonts.manrope(
+  static TextStyle label({Color? color}) => GoogleFonts.manrope(
         fontSize: 12,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.6,
-        color: color,
+        color: color ?? AppColors.inkSoft,
       );
 
-  static TextStyle button({Color color = AppColors.white}) => GoogleFonts.manrope(
+  static TextStyle button({Color? color}) => GoogleFonts.manrope(
         fontSize: 15,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.2,
-        color: color,
+        color: color ?? AppColors.white,
       );
 
   /// Text set inside a chat bubble (plain-text fallback / non-A-Z runs
   /// alongside handwritten glyphs — see CustomText).
-  static TextStyle messageText({Color color = AppColors.ink}) => GoogleFonts.manrope(
+  static TextStyle messageText({Color? color}) => GoogleFonts.manrope(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         height: 1.3,
-        color: color,
+        color: color ?? AppColors.ink,
       );
 
   /// The thin scrolling marquee line ("scritto a mano · solo per te ·").
-  static TextStyle marquee({Color color = AppColors.inkSoft}) => GoogleFonts.manrope(
+  static TextStyle marquee({Color? color}) => GoogleFonts.manrope(
         fontSize: 13,
         fontWeight: FontWeight.w600,
         letterSpacing: 1.2,
-        color: color,
+        color: color ?? AppColors.inkSoft,
       );
 
   // ---------------------------------------------------------------------

@@ -32,14 +32,14 @@ class AttachmentBubble extends StatelessWidget {
                   fit: BoxFit.cover,
                   loadingBuilder: (context, child, progress) {
                     if (progress == null) return child;
-                    return const Center(child: CircularProgressIndicator(color: AppColors.fuchsia));
+                    return Center(child: CircularProgressIndicator(color: AppColors.fuchsia));
                   },
-                  errorBuilder: (context, error, stack) => const ColoredBox(
+                  errorBuilder: (context, error, stack) => ColoredBox(
                     color: AppColors.chromeLight,
                     child: Icon(AppIcons.image, color: AppColors.inkSoft),
                   ),
                 )
-              : const ColoredBox(
+              : ColoredBox(
                   color: Colors.black87,
                   child: Icon(AppIcons.playCircle, color: AppColors.white, size: 48),
                 ),

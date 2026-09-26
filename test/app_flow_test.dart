@@ -25,7 +25,7 @@ void main() {
         state: appState,
         child: BackendScope(
           state: session,
-          child: MaterialApp(theme: AppTheme.light, home: const AuthGate()),
+          child: MaterialApp(theme: AppTheme.current, home: const AuthGate()),
         ),
       ),
     );
@@ -45,7 +45,7 @@ void main() {
         state: appState,
         child: BackendScope(
           state: session,
-          child: MaterialApp(theme: AppTheme.light, home: const OnboardingWelcomeScreen()),
+          child: MaterialApp(theme: AppTheme.current, home: const OnboardingWelcomeScreen()),
         ),
       ),
     );

@@ -91,7 +91,7 @@ class _MediaGalleryScreenState extends State<MediaGalleryScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.background),
+      decoration: BoxDecoration(gradient: AppGradients.background),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -103,7 +103,7 @@ class _MediaGalleryScreenState extends State<MediaGalleryScreen> {
           actions: [
             if (_selecting) ...[
               IconButton(
-                icon: const Icon(AppIcons.trash, color: AppColors.berry),
+                icon: Icon(AppIcons.trash, color: AppColors.berry),
                 onPressed: _selected.isEmpty ? null : _deleteSelected,
               ),
               TextButton(
@@ -132,7 +132,7 @@ class _MediaGalleryScreenState extends State<MediaGalleryScreen> {
             future: _future,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator(color: AppColors.fuchsia));
+                return Center(child: CircularProgressIndicator(color: AppColors.fuchsia));
               }
               if (_items.isEmpty) {
                 return Center(
@@ -176,7 +176,7 @@ class _MediaGalleryScreenState extends State<MediaGalleryScreen> {
                           borderRadius: BorderRadius.circular(AppRadii.sm),
                           child: item.attachmentType == AttachmentType.image
                               ? Image.network(item.attachmentUrl!, fit: BoxFit.cover)
-                              : const ColoredBox(
+                              : ColoredBox(
                                   color: Colors.black87,
                                   child: Icon(AppIcons.playCircle, color: AppColors.white),
                                 ),

@@ -63,7 +63,7 @@ class _MeshBackgroundState extends State<MeshBackground> with SingleTickerProvid
     final shader = _shader;
     if (_failed || shader == null) {
       return DecoratedBox(
-        decoration: const BoxDecoration(gradient: AppGradients.background),
+        decoration: BoxDecoration(gradient: AppGradients.background),
         child: widget.child,
       );
     }
@@ -91,12 +91,12 @@ class _MeshPainter extends CustomPainter {
 
   _MeshPainter({required this.shader, required this.time});
 
-  static const List<Color> _colors = [
-    AppColors.blush,
-    AppColors.mist,
-    AppColors.mauve,
-    AppColors.fuchsia,
-  ];
+  static List<Color> get _colors => [
+        AppColors.blush,
+        AppColors.mist,
+        AppColors.mauve,
+        AppColors.fuchsia,
+      ];
 
   @override
   void paint(Canvas canvas, Size size) {

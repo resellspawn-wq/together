@@ -6,6 +6,7 @@ import 'core/app_state.dart';
 import 'core/backend_scope.dart';
 import 'core/config/env.dart';
 import 'core/models/alphabet.dart';
+import 'core/models/app_settings.dart';
 import 'core/session_state.dart';
 import 'core/storage/storage_service.dart';
 import 'features/auth/auth_gate.dart';
@@ -81,16 +82,18 @@ class TogetherApp extends StatefulWidget {
   State<TogetherApp> createState() => _TogetherAppState();
 }
 
-class _TogetherAppState extends State<TogetherApp> {
+class _TogetherAppState extends State<TogetherApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     widget.appState.addListener(_onStateChanged);
     widget.sessionState.addListener(_onStateChanged);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.appState.removeListener(_onStateChanged);
     widget.sessionState.removeListener(_onStateChanged);
     super.dispose();
@@ -98,11 +101,28 @@ class _TogetherAppState extends State<TogetherApp> {
 
   void _onStateChanged() => setState(() {});
 
+  // Only matters while the setting is "system": the OS can flip light/dark
+  // while the app is already open, and AppColors needs to follow along.
+  @override
+  void didChangePlatformBrightness() {
+    if (widget.appState.settings.themeMode == AppThemeMode.system) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    // The new "soft glam" look is a single light editorial theme — the
-    // Settings dark/light/system choice still persists (unchanged logic),
-    // it just doesn't have a distinct dark palette to switch to yet.
+    final mode = widget.appState.settings.themeMode;
+    final isDark = switch (mode) {
+      AppThemeMode.dark => true,
+      AppThemeMode.light => false,
+      AppThemeMode.system => View.of(context).platformDispatcher.platformBrightness == Brightness.dark,
+    };
+    // Resolved *before* building the tree below: every AppColors getter
+    // read during this build (directly, or via AppTheme.current) picks up
+    // this value, and since practically every screen depends on AppScope
+    // already, this one setState cascades a full, correctly-colored
+    // rebuild without each widget needing its own theme plumbing.
+    AppColors.setDark(isDark);
+
     return AppScope(
       state: widget.appState,
       child: BackendScope(
@@ -110,7 +130,7 @@ class _TogetherAppState extends State<TogetherApp> {
         child: MaterialApp(
           title: 'Together',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
+          theme: AppTheme.current,
           home: const AuthGate(),
         ),
       ),
@@ -127,7 +147,7 @@ class _MissingConfigApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
+      theme: AppTheme.current,
       home: Scaffold(
         body: SafeArea(
           child: Padding(

@@ -81,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     if (_checkEmailSent) {
       return Container(
-        decoration: const BoxDecoration(gradient: AppGradients.background),
+        decoration: BoxDecoration(gradient: AppGradients.background),
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(),
@@ -112,7 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.background),
+      decoration: BoxDecoration(gradient: AppGradients.background),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -185,7 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   FilledButton(
                     onPressed: _loading ? null : _submit,
                     child: _loading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.white),

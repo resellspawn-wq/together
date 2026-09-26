@@ -91,7 +91,7 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.background),
+      decoration: BoxDecoration(gradient: AppGradients.background),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -137,7 +137,7 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
                 FilledButton(
                   onPressed: _loading ? null : _start,
                   child: _loading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.white),

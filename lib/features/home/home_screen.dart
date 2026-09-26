@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
               future: _future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: AppColors.fuchsia));
+                  return Center(child: CircularProgressIndicator(color: AppColors.fuchsia));
                 }
                 if (snapshot.hasError) {
                   return _EmptyState(
@@ -142,7 +142,7 @@ class _ConversationTile extends StatelessWidget {
               onTap: () => Navigator.of(context).pop('rename'),
             ),
             ListTile(
-              leading: const Icon(AppIcons.trash, color: AppColors.berry),
+              leading: Icon(AppIcons.trash, color: AppColors.berry),
               title: AppText('Elimina conversazione', style: AppTypography.body(color: AppColors.berry)),
               onTap: () => Navigator.of(context).pop('delete'),
             ),
@@ -251,7 +251,7 @@ class _ConversationTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Icon(AppIcons.caretRight, size: 18, color: AppColors.inkSoft),
+                Icon(AppIcons.caretRight, size: 18, color: AppColors.inkSoft),
               ],
             ),
           ),
@@ -306,8 +306,8 @@ class _Fab extends StatelessWidget {
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onPressed,
-        child: const Padding(
-          padding: EdgeInsets.all(AppSpacing.lg),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Icon(AppIcons.plusCircle, color: AppColors.white, size: 26),
         ),
       ),

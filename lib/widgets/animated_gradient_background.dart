@@ -55,7 +55,7 @@ class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
             gradient: LinearGradient(
               begin: Alignment.lerp(const Alignment(-0.3, -1), const Alignment(0.3, -1), t)!,
               end: Alignment.lerp(const Alignment(0.3, 1), const Alignment(-0.3, 1), t)!,
-              colors: const [AppColors.blush, AppColors.mist],
+              colors: [AppColors.blush, AppColors.mist],
             ),
           ),
           child: child,

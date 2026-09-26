@@ -299,7 +299,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     final other = _otherMember;
 
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.background),
+      decoration: BoxDecoration(gradient: AppGradients.background),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -353,7 +353,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(AppIcons.cloudSlash, size: 14, color: AppColors.berry),
+                        Icon(AppIcons.cloudSlash, size: 14, color: AppColors.berry),
                         const SizedBox(width: AppSpacing.xs),
                         AppText(
                           'offline — invio alla riconnessione',
@@ -563,12 +563,12 @@ class _ComposeArea extends StatelessWidget {
           IconButton(
             onPressed: onAttach,
             icon: attaching
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.fuchsia),
                   )
-                : const Icon(AppIcons.paperclip, color: AppColors.berry),
+                : Icon(AppIcons.paperclip, color: AppColors.berry),
           ),
           Expanded(
             child: LiveGlyphPreview(controller: controller, alphabet: alphabet, customEnabled: customEnabled),
@@ -594,8 +594,8 @@ class _SendButton extends StatelessWidget {
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onPressed,
-        child: const Padding(
-          padding: EdgeInsets.all(AppSpacing.md),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Icon(AppIcons.paperPlaneTilt, color: AppColors.white, size: 22),
         ),
       ),

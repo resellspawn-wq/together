@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_scope.dart';
 import '../../core/backend_scope.dart';
 import '../../core/config/env.dart';
+import '../../core/models/app_settings.dart';
 import '../../core/media/image_picker_service.dart';
 import '../../core/push/push_service.dart';
 import '../../theme/theme.dart';
@@ -125,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final profile = session.myProfile;
 
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.background),
+      decoration: BoxDecoration(gradient: AppGradients.background),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
@@ -164,14 +165,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               Container(
                                 padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(color: AppColors.fuchsia, shape: BoxShape.circle),
+                                decoration: BoxDecoration(color: AppColors.fuchsia, shape: BoxShape.circle),
                                 child: _avatarBusy
-                                    ? const SizedBox(
+                                    ? SizedBox(
                                         width: 12,
                                         height: 12,
                                         child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.white),
                                       )
-                                    : const Icon(AppIcons.camera, size: 14, color: AppColors.white),
+                                    : Icon(AppIcons.camera, size: 14, color: AppColors.white),
                               ),
                             ],
                           ),
@@ -196,6 +197,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xl),
               ],
+              const _SectionLabel('Aspetto'),
+              _Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    children: [
+                      _ThemeOption(
+                        icon: AppIcons.eye,
+                        label: 'Chiaro',
+                        selected: settings.themeMode == AppThemeMode.light,
+                        onTap: () => state.updateSettings((s) => s.copyWith(themeMode: AppThemeMode.light)),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _ThemeOption(
+                        icon: AppIcons.eyeSlash,
+                        label: 'Scuro',
+                        selected: settings.themeMode == AppThemeMode.dark,
+                        onTap: () => state.updateSettings((s) => s.copyWith(themeMode: AppThemeMode.dark)),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _ThemeOption(
+                        icon: AppIcons.gearSix,
+                        label: 'Sistema',
+                        selected: settings.themeMode == AppThemeMode.system,
+                        onTap: () => state.updateSettings((s) => s.copyWith(themeMode: AppThemeMode.system)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
               const _SectionLabel('Alfabeto'),
               _Card(
                 child: Column(
@@ -265,7 +297,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: AppSpacing.md),
                 _Card(
                   child: ListTile(
-                    leading: const Icon(AppIcons.signOut, color: AppColors.berry),
+                    leading: Icon(AppIcons.signOut, color: AppColors.berry),
                     title: AppText('Esci', style: AppTypography.body(color: AppColors.berry)),
                     subtitle: AppText('@${profile.username}', style: AppTypography.bodySmall()),
                     onTap: () async {
@@ -315,6 +347,42 @@ class _SectionLabel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.xs, AppSpacing.sm, AppSpacing.xs, AppSpacing.sm),
       child: AppText(text, style: AppTypography.label(color: AppColors.berry)),
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ThemeOption({required this.icon, required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: AppMotion.fast,
+          curve: AppMotion.enter,
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.fuchsia.withValues(alpha: 0.12) : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadii.md),
+            border: Border.all(color: selected ? AppColors.fuchsia : AppColors.chromeMid, width: selected ? 1.4 : 1),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: selected ? AppColors.fuchsia : AppColors.inkSoft),
+              const SizedBox(height: 4),
+              AppText(label, style: AppTypography.label(color: selected ? AppColors.fuchsia : AppColors.inkSoft)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
