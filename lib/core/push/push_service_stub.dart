@@ -7,5 +7,5 @@ abstract final class PushService {
   static Future<String> permission() async => 'unsupported';
   static Future<bool> isSubscribed() async => false;
   static Future<PushSubscriptionData?> subscribe(String vapidPublicKey) async => null;
-  static Future<void> unsubscribe() async {}
+  static Future<String?> unsubscribe() async => null;
 }

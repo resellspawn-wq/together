@@ -9,11 +9,57 @@ enum _KeyboardTab { letters, symbols, emoji }
 const List<String> _row1 = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'];
 const List<String> _row2 = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
 const List<String> _row3 = ['z', 'x', 'c', 'v', 'b', 'n', 'm'];
-const List<String> _numberRow = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
-const List<String> _punctuation = ['.', ',', '?', '!', "'", '"', '-', ':', ';', '/', '(', ')', '@', '#', '%', '&'];
+const List<String> _numberRow = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '0',
+];
+const List<String> _punctuation = [
+  '.',
+  ',',
+  '?',
+  '!',
+  "'",
+  '"',
+  '-',
+  ':',
+  ';',
+  '/',
+  '(',
+  ')',
+  '@',
+  '#',
+  '%',
+  '&',
+];
 const List<String> _emoji = [
-  '😀', '😂', '😍', '😘', '😊', '😉', '😢', '😮', '👍', '👎',
-  '❤️', '🔥', '🎉', '🙏', '👋', '✨', '💯', '😴', '🤔', '😎',
+  '😀',
+  '😂',
+  '😍',
+  '😘',
+  '😊',
+  '😉',
+  '😢',
+  '😮',
+  '👍',
+  '👎',
+  '❤️',
+  '🔥',
+  '🎉',
+  '🙏',
+  '👋',
+  '✨',
+  '💯',
+  '😴',
+  '🤔',
+  '😎',
 ];
 
 /// The app's own in-app keyboard (section 7 of the spec): tapping a
@@ -113,7 +159,9 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
           alignment: WrapAlignment.center,
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
-          children: _punctuation.map((c) => _charKey(c, flexWidth: 40)).toList(),
+          children: _punctuation
+              .map((c) => _charKey(c, flexWidth: 40))
+              .toList(),
         ),
       ],
     );
@@ -145,7 +193,10 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
           flex: 14,
           child: _key(
             onTap: () => widget.onCharacter(' '),
-            child: Text('spazio', style: AppTypography.label(color: AppColors.inkSoft)),
+            child: Text(
+              'spazio',
+              style: AppTypography.label(color: AppColors.inkSoft),
+            ),
           ),
         ),
         const Expanded(flex: 6, child: SizedBox.shrink()),
@@ -166,7 +217,9 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
             label,
             maxLines: 1,
             softWrap: false,
-            style: AppTypography.label(color: selected ? AppColors.berry : AppColors.inkSoft),
+            style: AppTypography.label(
+              color: selected ? AppColors.berry : AppColors.inkSoft,
+            ),
           ),
         ),
       ),
@@ -190,54 +243,76 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
   }
 
   Widget _charKey(String char, {double? flexWidth}) {
-    final key = _key(onTap: () => widget.onCharacter(char), child: Text(char, style: AppTypography.body()));
-    if (flexWidth != null) return SizedBox(width: flexWidth, height: 44, child: key);
+    final key = _key(
+      onTap: () => widget.onCharacter(char),
+      child: Text(char, style: AppTypography.body()),
+    );
+    if (flexWidth != null) {
+      return SizedBox(width: flexWidth, height: 44, child: key);
+    }
     return Expanded(child: key);
   }
 
-  Widget _iconKey({required IconData icon, required VoidCallback onTap, bool highlighted = false}) {
+  Widget _iconKey({
+    required IconData icon,
+    required VoidCallback onTap,
+    bool highlighted = false,
+  }) {
     return Expanded(
-      child: _key(onTap: onTap, highlighted: highlighted, child: Icon(icon, size: 18)),
+      child: _key(
+        onTap: onTap,
+        highlighted: highlighted,
+        child: Icon(icon, size: 18),
+      ),
     );
   }
 
-  Widget _key({required VoidCallback onTap, required Widget child, bool highlighted = false, bool filled = false}) {
+  Widget _key({
+    required VoidCallback onTap,
+    required Widget child,
+    bool highlighted = false,
+    bool filled = false,
+  }) {
     final backgroundColor = filled
         ? AppColors.fuchsia
         : highlighted
-            ? AppColors.blush
-            : AppColors.white;
+        ? AppColors.blush
+        : AppColors.white;
     final foregroundColor = filled ? AppColors.white : AppColors.ink;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: AnimatedContainer(
-        duration: AppMotion.fast,
-        curve: AppMotion.enter,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(AppRadii.sm),
-          border: filled ? null : Border.all(color: AppColors.chromeMid, width: 1),
-        ),
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
+      child: RepaintBoundary(
+        child: AnimatedContainer(
+          duration: AppMotion.fast,
+          curve: AppMotion.enter,
+          decoration: BoxDecoration(
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(AppRadii.sm),
-            // Fires on touch-down rather than waiting for the full tap
-            // gesture to resolve on release — shaves the recognition
-            // delay off every keystroke, which matters a lot when typing
-            // fast. onTap is kept (as a no-op trigger already handled by
-            // onTapDown) purely so the ink ripple still plays normally.
-            onTapDown: (_) => onTap(),
-            onTap: () {},
-            child: SizedBox(
-              height: 44,
-              child: Center(
-                child: IconTheme.merge(
-                  data: IconThemeData(color: foregroundColor),
-                  child: DefaultTextStyle.merge(
-                    style: TextStyle(color: foregroundColor),
-                    child: child,
+            border: filled
+                ? null
+                : Border.all(color: AppColors.chromeMid, width: 1),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(AppRadii.sm),
+              // Fires on touch-down rather than waiting for the full tap
+              // gesture to resolve on release — shaves the recognition
+              // delay off every keystroke, which matters a lot when typing
+              // fast. onTap is kept (as a no-op trigger already handled by
+              // onTapDown) purely so the ink ripple still plays normally.
+              onTapDown: (_) => onTap(),
+              onTap: () {},
+              child: SizedBox(
+                height: 44,
+                child: Center(
+                  child: IconTheme.merge(
+                    data: IconThemeData(color: foregroundColor),
+                    child: DefaultTextStyle.merge(
+                      style: TextStyle(color: foregroundColor),
+                      child: child,
+                    ),
                   ),
                 ),
               ),

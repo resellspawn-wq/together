@@ -41,7 +41,8 @@ class AnimatedGlyphText extends StatefulWidget {
   State<AnimatedGlyphText> createState() => _AnimatedGlyphTextState();
 }
 
-class _AnimatedGlyphTextState extends State<AnimatedGlyphText> with SingleTickerProviderStateMixin {
+class _AnimatedGlyphTextState extends State<AnimatedGlyphText>
+    with SingleTickerProviderStateMixin {
   AnimationController? _controller;
   List<_Slot> _slots = const [];
 
@@ -67,7 +68,8 @@ class _AnimatedGlyphTextState extends State<AnimatedGlyphText> with SingleTicker
     super.didChangeDependencies();
     if (_started || !_shouldAnimate) return;
     _started = true;
-    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     if (reduceMotion) {
       _controller!.value = 1;
     } else {
@@ -89,21 +91,25 @@ class _AnimatedGlyphTextState extends State<AnimatedGlyphText> with SingleTicker
       if (_asciiLetter.hasMatch(cluster)) {
         final glyph = alphabet.glyphFor(cluster.toUpperCase());
         final durationMs = _glyphDurationMs(glyph);
-        slots.add(_Slot(
-          character: cluster,
-          glyph: (glyph?.hasStrokes ?? false) ? glyph : null,
-          startMs: cumulativeMs,
-          durationMs: durationMs,
-        ));
+        slots.add(
+          _Slot(
+            character: cluster,
+            glyph: (glyph?.hasStrokes ?? false) ? glyph : null,
+            startMs: cumulativeMs,
+            durationMs: durationMs,
+          ),
+        );
         cumulativeMs += durationMs;
       } else {
         final durationMs = AppMotion.plainCharacterReveal.inMilliseconds;
-        slots.add(_Slot(
-          character: cluster,
-          glyph: null,
-          startMs: cumulativeMs,
-          durationMs: durationMs,
-        ));
+        slots.add(
+          _Slot(
+            character: cluster,
+            glyph: null,
+            startMs: cumulativeMs,
+            durationMs: durationMs,
+          ),
+        );
         cumulativeMs += durationMs;
       }
     }
@@ -111,7 +117,9 @@ class _AnimatedGlyphTextState extends State<AnimatedGlyphText> with SingleTicker
   }
 
   static int _glyphDurationMs(Glyph? glyph) {
-    if (glyph == null || !glyph.hasStrokes) return AppMotion.plainCharacterReveal.inMilliseconds;
+    if (glyph == null || !glyph.hasStrokes) {
+      return AppMotion.plainCharacterReveal.inMilliseconds;
+    }
     final totalLength = _totalStrokeLength(glyph);
     final reference = (glyph.width + glyph.height); // rough per-glyph scale
     final normalized = (totalLength / (reference * 1.6)).clamp(0.0, 1.0);
@@ -145,7 +153,8 @@ class _AnimatedGlyphTextState extends State<AnimatedGlyphText> with SingleTicker
       );
     }
 
-    final resolvedColor = widget.color ?? Theme.of(context).colorScheme.onSurface;
+    final resolvedColor =
+        widget.color ?? Theme.of(context).colorScheme.onSurface;
     final controller = _controller!;
     final totalMs = controller.duration!.inMilliseconds;
 
@@ -162,29 +171,43 @@ class _AnimatedGlyphTextState extends State<AnimatedGlyphText> with SingleTicker
         var currentWord = <Widget>[];
         void flushWord() {
           if (currentWord.isEmpty) return;
-          lineChildren.add(Row(mainAxisSize: MainAxisSize.min, children: currentWord));
+          lineChildren.add(
+            Row(mainAxisSize: MainAxisSize.min, children: currentWord),
+          );
           currentWord = [];
         }
 
         for (final slot in _slots) {
-          final progress = ((elapsedMs - slot.startMs) / slot.durationMs).clamp(0.0, 1.0);
+          final progress = ((elapsedMs - slot.startMs) / slot.durationMs).clamp(
+            0.0,
+            1.0,
+          );
           if (slot.character == ' ') {
             flushWord();
-            lineChildren.add(SizedBox(width: widget.fontSize * 0.45, height: widget.fontSize * 1.3));
+            lineChildren.add(
+              SizedBox(
+                width: widget.fontSize * 0.45,
+                height: widget.fontSize * 1.3,
+              ),
+            );
           } else if (slot.glyph != null) {
-            currentWord.add(_AnimatedGlyph(
-              glyph: slot.glyph!,
-              color: resolvedColor,
-              size: widget.fontSize * 1.3,
-              progress: progress,
-            ));
+            currentWord.add(
+              _AnimatedGlyph(
+                glyph: slot.glyph!,
+                color: resolvedColor,
+                size: widget.fontSize * 1.3,
+                progress: progress,
+              ),
+            );
           } else {
-            currentWord.add(_RevealingChar(
-              character: slot.character,
-              fontSize: widget.fontSize,
-              color: resolvedColor,
-              progress: progress,
-            ));
+            currentWord.add(
+              _RevealingChar(
+                character: slot.character,
+                fontSize: widget.fontSize,
+                color: resolvedColor,
+                progress: progress,
+              ),
+            );
           }
         }
         flushWord();
@@ -204,7 +227,12 @@ class _Slot {
   final int startMs;
   final int durationMs;
 
-  const _Slot({required this.character, required this.glyph, required this.startMs, required this.durationMs});
+  const _Slot({
+    required this.character,
+    required this.glyph,
+    required this.startMs,
+    required this.durationMs,
+  });
 }
 
 class _RevealingChar extends StatelessWidget {
@@ -228,7 +256,8 @@ class _RevealingChar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 1),
         child: Text(
           character,
-          style: AppTypography.messageText(color: color).copyWith(fontSize: fontSize, height: 1),
+          style: AppTypography.messageText(color: color)
+              .copyWith(fontSize: fontSize, height: 1),
         ),
       ),
     );
@@ -250,14 +279,68 @@ class _AnimatedGlyph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(
-        painter: _StrokeRevealPainter(glyph: glyph, color: color, progress: progress),
+    return RepaintBoundary(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: CustomPaint(
+          painter: _StrokeRevealPainter(
+            glyph: glyph,
+            color: color,
+            progress: progress,
+          ),
+        ),
       ),
     );
   }
+}
+
+class _GlyphPathCache {
+  final List<Path> paths;
+  final List<double> lengths;
+  final double total;
+
+  const _GlyphPathCache(this.paths, this.lengths, this.total);
+}
+
+/// Building every stroke's [Path] and measuring it with
+/// [Path.computeMetrics] is not free, and [_StrokeRevealPainter.paint]
+/// used to redo both from scratch on every single animation frame (up to
+/// 60 times a second, for every letter animating at once) — the actual
+/// cause of the visible jank right as a message bubble appears. A glyph's
+/// strokes never change mid-animation, so this caches the built paths per
+/// [Glyph] instance (identity-keyed — a new drawing produces a new Glyph
+/// object, so edits still invalidate correctly) and reuses them across
+/// frames.
+final Expando<_GlyphPathCache> _glyphPathCache = Expando<_GlyphPathCache>();
+
+_GlyphPathCache _pathCacheFor(Glyph glyph) {
+  final cached = _glyphPathCache[glyph];
+  if (cached != null) return cached;
+
+  final paths = <Path>[];
+  final lengths = <double>[];
+  var total = 0.0;
+  for (final stroke in glyph.strokes) {
+    if (stroke.points.isEmpty) continue;
+    final path = Path()..moveTo(stroke.points.first.x, stroke.points.first.y);
+    for (final p in stroke.points.skip(1)) {
+      path.lineTo(p.x, p.y);
+    }
+    var len = 0.0;
+    for (final metric in path.computeMetrics()) {
+      len += metric.length;
+    }
+    if (len == 0) len = 1;
+    paths.add(path);
+    lengths.add(len);
+    total += len;
+  }
+  if (total == 0) total = 1;
+
+  final result = _GlyphPathCache(paths, lengths, total);
+  _glyphPathCache[glyph] = result;
+  return result;
 }
 
 /// Paints a glyph's strokes progressively, in order, budgeting
@@ -268,7 +351,11 @@ class _StrokeRevealPainter extends CustomPainter {
   final Color color;
   final double progress;
 
-  _StrokeRevealPainter({required this.glyph, required this.color, required this.progress});
+  _StrokeRevealPainter({
+    required this.glyph,
+    required this.color,
+    required this.progress,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -295,25 +382,10 @@ class _StrokeRevealPainter extends CustomPainter {
     canvas.translate(offsetX, offsetY);
     canvas.scale(scale);
 
-    final paths = <Path>[];
-    final lengths = <double>[];
-    var total = 0.0;
-    for (final stroke in glyph.strokes) {
-      if (stroke.points.isEmpty) continue;
-      final path = Path()..moveTo(stroke.points.first.x, stroke.points.first.y);
-      for (final p in stroke.points.skip(1)) {
-        path.lineTo(p.x, p.y);
-      }
-      var len = 0.0;
-      for (final metric in path.computeMetrics()) {
-        len += metric.length;
-      }
-      if (len == 0) len = 1;
-      paths.add(path);
-      lengths.add(len);
-      total += len;
-    }
-    if (total == 0) total = 1;
+    final cache = _pathCacheFor(glyph);
+    final paths = cache.paths;
+    final lengths = cache.lengths;
+    final total = cache.total;
 
     var budget = progress * total;
     for (var i = 0; i < paths.length; i++) {
@@ -349,6 +421,8 @@ class _StrokeRevealPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _StrokeRevealPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.glyph.updatedAt != glyph.updatedAt || oldDelegate.color != color;
+    return oldDelegate.progress != progress ||
+        oldDelegate.glyph.updatedAt != glyph.updatedAt ||
+        oldDelegate.color != color;
   }
 }

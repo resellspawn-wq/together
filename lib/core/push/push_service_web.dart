@@ -29,8 +29,17 @@ abstract final class PushService {
   static Future<PushSubscriptionData?> subscribe(String vapidPublicKey) async {
     if (!await isSupported()) return null;
 
-    final result = await web.Notification.requestPermission().toDart;
-    if (result.toDart != 'granted') return null;
+    // Skip the round trip through requestPermission() entirely when the
+    // user already granted (or denied) it — calling it again when the
+    // decision is already made still resolves, but it's an extra async
+    // hop for nothing, and was making the toggle visibly slower to turn
+    // back on after being switched off and on again.
+    var permission = web.Notification.permission;
+    if (permission == 'default') {
+      final result = await web.Notification.requestPermission().toDart;
+      permission = result.toDart;
+    }
+    if (permission != 'granted') return null;
 
     final registration = await web.window.navigator.serviceWorker.ready.toDart;
     final options = web.PushSubscriptionOptionsInit(
@@ -57,13 +66,18 @@ abstract final class PushService {
     return subscription != null;
   }
 
-  static Future<void> unsubscribe() async {
-    if (!await isSupported()) return;
+  /// Unsubscribes this browser and returns the endpoint that was removed
+  /// (null if there was none), so the caller can also delete the matching
+  /// row server-side — otherwise it's left behind as dead data that the
+  /// send-push function would only clean up after failing to reach it.
+  static Future<String?> unsubscribe() async {
+    if (!await isSupported()) return null;
     final registration = await web.window.navigator.serviceWorker.ready.toDart;
     final subscription = await registration.pushManager.getSubscription().toDart;
-    if (subscription != null) {
-      await subscription.unsubscribe().toDart;
-    }
+    if (subscription == null) return null;
+    final endpoint = subscription.endpoint;
+    await subscription.unsubscribe().toDart;
+    return endpoint;
   }
 
   static Uint8List _urlBase64ToUint8Array(String base64String) {

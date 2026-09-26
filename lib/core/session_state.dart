@@ -168,7 +168,14 @@ class SessionState extends ChangeNotifier {
   }
 
   Future<void> disablePush() async {
-    await PushService.unsubscribe();
+    final endpoint = await PushService.unsubscribe();
+    if (endpoint == null) return;
+    try {
+      await push.removeSubscription(endpoint);
+    } catch (_) {
+      // Best-effort — a stale row here just means one wasted send-push
+      // attempt later, which self-cleans on the first failed delivery.
+    }
   }
 
   /// Renames the signed-in user's own profile (shown to everyone they
