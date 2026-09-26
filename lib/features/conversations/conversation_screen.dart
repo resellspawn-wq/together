@@ -76,6 +76,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         // Anything we optimistically added has now really landed.
         _pending.removeWhere((p) => msgs.any((m) => m.text == p.text && m.senderId == p.senderId));
         _scrollToBottom();
+        _markReceipts(msgs);
       },
       onError: (Object _) {
         if (!mounted) return;
@@ -94,6 +95,22 @@ class _ConversationScreenState extends State<ConversationScreen> {
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// The recipient (never the sender) stamps delivered/read on the
+  /// other person's messages. If this screen is open at all, the message
+  /// is both delivered and seen, so both land together — there's no
+  /// separate "app open but chat closed" state to model here.
+  void _markReceipts(List<Message> msgs) {
+    final myId = _myId;
+    final toMark = msgs
+        .where((m) => m.senderId != myId && (m.deliveredAt == null || m.readAt == null))
+        .map((m) => m.id)
+        .toList();
+    if (toMark.isEmpty) return;
+    final backend = BackendScope.readOf(context);
+    backend.messages.markDelivered(toMark);
+    backend.messages.markRead(toMark);
   }
 
   void _scrollToBottom() {
@@ -394,6 +411,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
   }
 }
 
+String _formatTime(DateTime dt) => '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+
 class _MessageBubble extends StatelessWidget {
   final Message message;
   final bool isMine;
@@ -442,17 +461,27 @@ class _MessageBubble extends StatelessWidget {
                 fontSize: 18,
                 color: textColor,
               ),
-              if (message.pending) ...[
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+              const SizedBox(height: AppSpacing.xs),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (message.pending) ...[
                     Icon(AppIcons.clock, size: 12, color: textColor.withValues(alpha: 0.7)),
                     const SizedBox(width: 4),
                     Text('in invio…', style: AppTypography.label(color: textColor.withValues(alpha: 0.7))),
+                  ] else ...[
+                    Text(_formatTime(message.createdAt), style: AppTypography.label(color: textColor.withValues(alpha: 0.7))),
+                    if (isMine) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        message.readAt != null || message.deliveredAt != null ? AppIcons.checks : AppIcons.check,
+                        size: 14,
+                        color: message.readAt != null ? textColor : textColor.withValues(alpha: 0.6),
+                      ),
+                    ],
                   ],
-                ),
-              ],
+                ],
+              ),
             ],
           ),
         ),

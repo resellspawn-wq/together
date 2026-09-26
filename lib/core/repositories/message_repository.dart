@@ -41,4 +41,26 @@ class MessageRepository {
   Future<void> clearMessages(String conversationId) async {
     await _client.from('messages').delete().eq('conversation_id', conversationId);
   }
+
+  /// Stamps delivered_at on messages from someone else that this device
+  /// has just received but never marked delivered yet.
+  Future<void> markDelivered(List<String> messageIds) async {
+    if (messageIds.isEmpty) return;
+    await _client
+        .from('messages')
+        .update({'delivered_at': DateTime.now().toUtc().toIso8601String()})
+        .filter('id', 'in', '(${messageIds.join(',')})')
+        .filter('delivered_at', 'is', null);
+  }
+
+  /// Stamps read_at on messages from someone else once the conversation
+  /// screen has actually shown them.
+  Future<void> markRead(List<String> messageIds) async {
+    if (messageIds.isEmpty) return;
+    await _client
+        .from('messages')
+        .update({'read_at': DateTime.now().toUtc().toIso8601String()})
+        .filter('id', 'in', '(${messageIds.join(',')})')
+        .filter('read_at', 'is', null);
+  }
 }

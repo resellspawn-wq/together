@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import '../../core/app_scope.dart';
 import '../../core/backend_scope.dart';
 import '../../core/config/env.dart';
+import '../../core/media/image_picker_service.dart';
 import '../../core/push/push_service.dart';
 import '../../theme/theme.dart';
+import '../alphabet/alphabet_preview_screen.dart';
 import '../auth/auth_gate.dart';
+import '../editor/editor_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,6 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _pushSupported = false;
   bool _pushEnabled = false;
   bool _pushBusy = true;
+  bool _avatarBusy = false;
 
   @override
   void initState() {
@@ -61,11 +65,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _changeAvatar() async {
+    final picked = await ImagePickerService.pickImage();
+    if (picked == null || !mounted) return;
+    setState(() => _avatarBusy = true);
+    try {
+      await BackendScope.readOf(context).updateMyAvatar(picked.bytes, extension: picked.extension);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non è stato possibile aggiornare la foto.')));
+      }
+    } finally {
+      if (mounted) setState(() => _avatarBusy = false);
+    }
+  }
+
+  Future<void> _renameMyself(String currentName) async {
+    final controller = TextEditingController(text: currentName);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cambia il tuo nome'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: AppTypography.body(),
+          onSubmitted: (v) => Navigator.of(context).pop(v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('ANNULLA')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text), child: const Text('SALVA')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (newName == null || newName.trim().isEmpty || !mounted) return;
+    try {
+      await BackendScope.readOf(context).updateMyDisplayName(newName.trim());
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non è stato possibile salvare il nome.')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
     final settings = state.settings;
     final session = BackendScope.of(context);
+    final profile = session.myProfile;
 
     return Container(
       decoration: const BoxDecoration(gradient: AppGradients.background),
@@ -82,17 +131,102 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
+              if (profile != null) ...[
+                const _SectionLabel('Il tuo profilo'),
+                _Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          onTap: _avatarBusy ? null : _changeAvatar,
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              CircleAvatar(
+                                radius: 32,
+                                backgroundColor: AppColors.blush,
+                                backgroundImage: profile.avatarUrl != null ? NetworkImage(profile.avatarUrl!) : null,
+                                child: profile.avatarUrl == null
+                                    ? Text(
+                                        profile.displayName.characters.first.toUpperCase(),
+                                        style: AppTypography.titleCompact(color: AppColors.berry),
+                                      )
+                                    : null,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(color: AppColors.fuchsia, shape: BoxShape.circle),
+                                child: _avatarBusy
+                                    ? const SizedBox(
+                                        width: 12,
+                                        height: 12,
+                                        child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.white),
+                                      )
+                                    : const Icon(AppIcons.camera, size: 14, color: AppColors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(profile.displayName, style: AppTypography.titleCompact()),
+                              Text('@${profile.username}', style: AppTypography.bodySmall()),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(AppIcons.pencilSimple, size: 18),
+                          onPressed: () => _renameMyself(profile.displayName),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
               const _SectionLabel('Alfabeto'),
               _Card(
-                child: SwitchListTile(
-                  activeThumbColor: AppColors.fuchsia,
-                  title: Text('Alfabeto personalizzato', style: AppTypography.body()),
-                  subtitle: Text(
-                    'Quando è OFF il testo viene mostrato normalmente (utile per debug e accessibilità).',
-                    style: AppTypography.bodySmall(),
-                  ),
-                  value: settings.customAlphabetEnabled,
-                  onChanged: (v) => state.updateSettings((s) => s.copyWith(customAlphabetEnabled: v)),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(AppIcons.gridFour),
+                      title: Text('Visualizza alfabeto', style: AppTypography.body()),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const AlphabetPreviewScreen()),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(AppIcons.pencilSimple),
+                      title: Text('Modifica alfabeto', style: AppTypography.body()),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const EditorScreen(sequential: false)),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(AppIcons.keyboard),
+                      title: Text('Prova a scrivere', style: AppTypography.body()),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const AlphabetPreviewScreen(focusTryField: true)),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    SwitchListTile(
+                      activeThumbColor: AppColors.fuchsia,
+                      title: Text('Alfabeto personalizzato', style: AppTypography.body()),
+                      subtitle: Text(
+                        'Quando è OFF il testo viene mostrato normalmente.',
+                        style: AppTypography.bodySmall(),
+                      ),
+                      value: settings.customAlphabetEnabled,
+                      onChanged: (v) => state.updateSettings((s) => s.copyWith(customAlphabetEnabled: v)),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -119,13 +253,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: Text('Il tuo alfabeto, il tuo modo di scrivere.', style: AppTypography.bodySmall()),
                 ),
               ),
-              if (session.myProfile != null) ...[
+              if (profile != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 _Card(
                   child: ListTile(
                     leading: const Icon(AppIcons.signOut, color: AppColors.berry),
                     title: Text('Esci', style: AppTypography.body(color: AppColors.berry)),
-                    subtitle: Text('@${session.myProfile!.username}', style: AppTypography.bodySmall()),
+                    subtitle: Text('@${profile.username}', style: AppTypography.bodySmall()),
                     onTap: () async {
                       await session.auth.signOut();
                       if (!context.mounted) return;

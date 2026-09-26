@@ -50,3 +50,4 @@ app.*.map.json
 # Supabase credentials — copy supabase.env.example.json to supabase.env.json
 # and fill in your own project's URL/anon key. Never commit the real file.
 supabase.env.json
+supabase/.temp/

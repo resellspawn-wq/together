@@ -1,93 +1,204 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../core/app_scope.dart';
 import '../../core/backend_scope.dart';
-import '../alphabet/alphabet_preview_screen.dart';
-import '../conversations/conversations_list_screen.dart';
+import '../../core/models/conversation.dart';
+import '../../theme/theme.dart';
+import '../../widgets/animated_gradient_background.dart';
+import '../conversations/conversation_screen.dart';
 import '../conversations/new_conversation_screen.dart';
-import '../editor/editor_screen.dart';
 import '../settings/settings_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+/// The app's root screen once signed in and onboarded: a WhatsApp-style
+/// chat list, with the user's own avatar (tap -> Settings) up top instead
+/// of a separate "home menu" — alphabet tools now live inside Settings.
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Future<List<Conversation>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = BackendScope.readOf(context).loadConversations();
+  }
+
+  Future<void> _refresh() async {
+    final future = BackendScope.readOf(context).loadConversations();
+    setState(() => _future = future);
+    await future;
+  }
+
+  Future<void> _newConversation() async {
+    final started = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const NewConversationScreen()),
+    );
+    if (started == true) _refresh();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final alphabet = AppScope.of(context).alphabet;
     final profile = BackendScope.of(context).myProfile;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Together')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const NewConversationScreen()),
-        ),
-        child: const Icon(Icons.add_comment_outlined),
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            if (profile != null) ...[
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                    child: Text(profile.displayName.characters.first.toUpperCase()),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(profile.displayName, style: Theme.of(context).textTheme.titleMedium),
-                      Text('@${profile.username}', style: Theme.of(context).textTheme.bodySmall),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-            ],
-            Text('Il tuo alfabeto', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 4),
-            Text(
-              '${alphabet.completedCount} / 26 lettere create',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 24),
-            _HomeCard(
-              icon: Icons.grid_view_rounded,
-              label: 'Visualizza alfabeto',
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AlphabetPreviewScreen()),
-              ),
-            ),
-            _HomeCard(
-              icon: Icons.edit_outlined,
-              label: 'Modifica alfabeto',
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const EditorScreen(sequential: false)),
-              ),
-            ),
-            _HomeCard(
-              icon: Icons.create_outlined,
-              label: 'Prova a scrivere',
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AlphabetPreviewScreen(focusTryField: true)),
-              ),
-            ),
-            _HomeCard(
-              icon: Icons.chat_bubble_outline,
-              label: 'Conversazioni',
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ConversationsListScreen()),
-              ),
-            ),
-            _HomeCard(
-              icon: Icons.settings_outlined,
-              label: 'Impostazioni',
+    return AnimatedGradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: AppColors.white.withValues(alpha: 0.55),
+          elevation: 0,
+          leadingWidth: 64,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.md),
+            child: GestureDetector(
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
               ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.blush,
+                backgroundImage: profile?.avatarUrl != null ? NetworkImage(profile!.avatarUrl!) : null,
+                child: profile?.avatarUrl == null
+                    ? Text(
+                        (profile?.displayName ?? '?').characters.first.toUpperCase(),
+                        style: AppTypography.body(color: AppColors.berry).copyWith(fontWeight: FontWeight.w700),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+          title: Text('Together', style: AppTypography.titleCompact()),
+        ),
+        floatingActionButton: _Fab(onPressed: _newConversation),
+        body: SafeArea(
+          child: RefreshIndicator(
+            color: AppColors.fuchsia,
+            onRefresh: _refresh,
+            child: FutureBuilder<List<Conversation>>(
+              future: _future,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: AppColors.fuchsia));
+                }
+                if (snapshot.hasError) {
+                  return _EmptyState(
+                    icon: AppIcons.cloudSlash,
+                    message: 'Connessione non disponibile.\nRiprova più tardi.',
+                  );
+                }
+                final conversations = snapshot.data ?? const [];
+                if (conversations.isEmpty) {
+                  return _EmptyState(
+                    icon: AppIcons.heart,
+                    message: 'Nessuna conversazione ancora.\nTocca + per iniziarne una.',
+                  );
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxxl),
+                  itemCount: conversations.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (context, index) {
+                    final c = conversations[index];
+                    return _ConversationTile(conversation: c, index: index, onChanged: _refresh);
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ConversationTile extends StatelessWidget {
+  final Conversation conversation;
+  final int index;
+  final VoidCallback onChanged;
+
+  const _ConversationTile({required this.conversation, required this.index, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final other = conversation.otherMember;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        border: Border.all(color: AppColors.chromeLight, width: 1),
+        boxShadow: AppShadows.soft,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          onTap: () async {
+            final changed = await Navigator.of(context).push<bool>(
+              MaterialPageRoute(builder: (_) => ConversationScreen(conversation: conversation)),
+            );
+            if (changed == true) onChanged();
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: AppColors.blush,
+                  child: Text(
+                    other.displayName.characters.first.toUpperCase(),
+                    style: AppTypography.body(color: AppColors.berry).copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(other.displayName, style: AppTypography.titleCompact()),
+                      Text('@${other.username}', style: AppTypography.bodySmall()),
+                    ],
+                  ),
+                ),
+                const Icon(AppIcons.caretRight, size: 18, color: AppColors.inkSoft),
+              ],
+            ),
+          ),
+        ),
+      ),
+    )
+        .animate(delay: AppMotion.staggerStep * index)
+        .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
+        .slideY(begin: 0.15, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized);
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  final IconData icon;
+  final String message;
+
+  const _EmptyState({required this.icon, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 40, color: AppColors.mauve),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTypography.body(color: AppColors.inkSoft),
             ),
           ],
         ),
@@ -96,32 +207,23 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _HomeCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
+class _Fab extends StatelessWidget {
+  final VoidCallback onPressed;
 
-  const _HomeCard({required this.icon, required this.label, required this.onTap});
+  const _Fab({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 14),
+    return Material(
+      color: AppColors.fuchsia,
+      shape: const CircleBorder(),
+      elevation: 0,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          child: Row(
-            children: [
-              Icon(icon, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(label, style: Theme.of(context).textTheme.titleMedium),
-              ),
-              const Icon(Icons.chevron_right),
-            ],
-          ),
+        customBorder: const CircleBorder(),
+        onTap: onPressed,
+        child: const Padding(
+          padding: EdgeInsets.all(AppSpacing.lg),
+          child: Icon(AppIcons.plusCircle, color: AppColors.white, size: 26),
         ),
       ),
     );

@@ -27,7 +27,9 @@ abstract final class AppIcons {
   static const caretRight = IconData(0xe13a, fontFamily: _family, fontPackage: _package);
   static const chatCircleDots = IconData(0xe16c, fontFamily: _family, fontPackage: _package);
   static const chatCircleText = IconData(0xe16e, fontFamily: _family, fontPackage: _package);
+  static const camera = IconData(0xe10e, fontFamily: _family, fontPackage: _package);
   static const check = IconData(0xe182, fontFamily: _family, fontPackage: _package);
+  static const checks = IconData(0xe53a, fontFamily: _family, fontPackage: _package);
   static const clock = IconData(0xe19a, fontFamily: _family, fontPackage: _package);
   static const cloudSlash = IconData(0xe1b6, fontFamily: _family, fontPackage: _package);
   static const dotsThreeVertical = IconData(0xe208, fontFamily: _family, fontPackage: _package);

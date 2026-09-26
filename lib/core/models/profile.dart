@@ -5,16 +5,19 @@ class Profile {
   final String id;
   final String username;
   final String displayName;
+  final String? avatarUrl;
 
   const Profile({
     required this.id,
     required this.username,
     required this.displayName,
+    this.avatarUrl,
   });
 
   factory Profile.fromRow(Map<String, dynamic> row) => Profile(
         id: row['id'] as String,
         username: row['username'] as String,
         displayName: row['display_name'] as String,
+        avatarUrl: row['avatar_url'] as String?,
       );
 }

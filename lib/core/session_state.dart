@@ -171,6 +171,24 @@ class SessionState extends ChangeNotifier {
     await PushService.unsubscribe();
   }
 
+  /// Renames the signed-in user's own profile (shown to everyone they
+  /// chat with, unless a contact gave them a local nickname instead).
+  Future<void> updateMyDisplayName(String displayName) async {
+    final user = auth.currentUser;
+    if (user == null) return;
+    await profiles.updateDisplayName(user.id, displayName);
+    myProfile = Profile(id: user.id, username: myProfile!.username, displayName: displayName, avatarUrl: myProfile!.avatarUrl);
+    notifyListeners();
+  }
+
+  Future<void> updateMyAvatar(Uint8List bytes, {required String extension}) async {
+    final user = auth.currentUser;
+    if (user == null) return;
+    final url = await profiles.uploadAvatar(user.id, bytes, extension: extension);
+    myProfile = Profile(id: user.id, username: myProfile!.username, displayName: myProfile!.displayName, avatarUrl: url);
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _authSub?.cancel();
