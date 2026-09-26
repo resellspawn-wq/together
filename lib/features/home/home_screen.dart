@@ -236,10 +236,13 @@ class _ConversationTile extends StatelessWidget {
                 CircleAvatar(
                   radius: 22,
                   backgroundColor: AppColors.blush,
-                  child: AppText(
-                    other.displayName.characters.first.toUpperCase(),
-                    style: AppTypography.body(color: AppColors.berry).copyWith(fontWeight: FontWeight.w700),
-                  ),
+                  backgroundImage: other.avatarUrl != null ? NetworkImage(other.avatarUrl!) : null,
+                  child: other.avatarUrl == null
+                      ? AppText(
+                          other.displayName.characters.first.toUpperCase(),
+                          style: AppTypography.body(color: AppColors.berry).copyWith(fontWeight: FontWeight.w700),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -251,6 +254,10 @@ class _ConversationTile extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (conversation.unreadCount > 0) ...[
+                  _UnreadBadge(count: conversation.unreadCount),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
                 Icon(AppIcons.caretRight, size: 18, color: AppColors.inkSoft),
               ],
             ),
@@ -310,6 +317,24 @@ class _Fab extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Icon(AppIcons.plusCircle, color: AppColors.white, size: 26),
         ),
+      ),
+    );
+  }
+}
+
+class _UnreadBadge extends StatelessWidget {
+  final int count;
+  const _UnreadBadge({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = count > 9 ? '9+' : '$count';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(color: AppColors.fuchsia, shape: BoxShape.circle),
+      constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
+      child: Center(
+        child: AppText(label, style: AppTypography.label(color: AppColors.white)),
       ),
     );
   }

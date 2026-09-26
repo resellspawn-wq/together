@@ -17,18 +17,23 @@ abstract final class ImagePickerService {
     return PickedImage(bytes: picked.$1, extension: picked.$2);
   }
 
-  /// Same idea, but accepts photos or videos — for chat attachments.
-  static Future<PickedMedia?> pickMedia() async {
-    final picked = await _pick('image/*,video/*');
+  /// Same idea, but accepts photos or videos — for chat attachments. When
+  /// [useCamera] is true, sets the `capture` attribute so mobile browsers
+  /// open the device camera directly instead of the gallery/file picker
+  /// (desktop browsers without a camera just ignore the hint and fall
+  /// back to the normal picker).
+  static Future<PickedMedia?> pickMedia({bool useCamera = false}) async {
+    final picked = await _pick('image/*,video/*', capture: useCamera ? 'environment' : null);
     if (picked == null) return null;
     return PickedMedia(bytes: picked.$1, extension: picked.$2);
   }
 
-  static Future<(Uint8List, String)?> _pick(String accept) {
+  static Future<(Uint8List, String)?> _pick(String accept, {String? capture}) {
     final completer = Completer<(Uint8List, String)?>();
     final input = web.HTMLInputElement()
       ..type = 'file'
       ..accept = accept;
+    if (capture != null) input.capture = capture;
 
     input.onchange = ((web.Event _) {
       final files = input.files;

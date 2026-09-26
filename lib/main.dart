@@ -39,12 +39,18 @@ void main() async {
     lastUserId = currentUserId;
     storage.useNamespace(currentUserId);
     appState.reload();
-    if (currentUserId != null) _pullAlphabetIfLocalIsEmpty(sessionState, appState, currentUserId);
+    if (currentUserId != null) {
+      _pullAlphabetIfLocalIsEmpty(sessionState, appState, currentUserId);
+      sessionState.watchMyAlphabet(appState.saveGlyph);
+    }
   });
   // Cover the "already signed in when the app opens" case too (the
   // listener above only fires on a *change*).
   final initialUserId = lastUserId;
-  if (initialUserId != null) _pullAlphabetIfLocalIsEmpty(sessionState, appState, initialUserId);
+  if (initialUserId != null) {
+    _pullAlphabetIfLocalIsEmpty(sessionState, appState, initialUserId);
+    sessionState.watchMyAlphabet(appState.saveGlyph);
+  }
 
   runApp(TogetherApp(appState: appState, sessionState: sessionState));
 }

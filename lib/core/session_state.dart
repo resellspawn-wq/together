@@ -38,6 +38,7 @@ class SessionState extends ChangeNotifier {
 
   final Map<String, Alphabet> _otherAlphabets = {};
   final Map<String, StreamSubscription<Glyph>> _alphabetWatches = {};
+  StreamSubscription<Glyph>? _myAlphabetWatch;
 
   StreamSubscription<AuthState>? _authSub;
 
@@ -64,8 +65,15 @@ class SessionState extends ChangeNotifier {
     final user = auth.currentUser;
     if (user == null) return;
     try {
-      myProfile = await profiles.fetchProfile(user.id);
-      myAlphabetId = await alphabets.ensureAlphabetId(user.id);
+      // Independent reads — no reason to wait for the profile before
+      // starting the alphabet lookup (was costing a needless extra
+      // round trip on every sign-in / cold start).
+      final results = await Future.wait([
+        profiles.fetchProfile(user.id),
+        alphabets.ensureAlphabetId(user.id),
+      ]);
+      myProfile = results[0] as Profile;
+      myAlphabetId = results[1] as String;
     } catch (_) {
       // Offline or the profile row isn't there yet (trigger lag) — the
       // rest of the app still works from local data either way.
@@ -81,7 +89,24 @@ class SessionState extends ChangeNotifier {
       sub.cancel();
     }
     _alphabetWatches.clear();
+    _myAlphabetWatch?.cancel();
+    _myAlphabetWatch = null;
     notifyListeners();
+  }
+
+  /// Keeps this device's own alphabet in sync with edits made on *another*
+  /// device signed into the same account — without this, a letter redrawn
+  /// on one phone never showed up on the other until the app was
+  /// reinstalled/reloaded, since the alphabet is otherwise local-first.
+  /// [onGlyph] should just write the glyph to local storage (e.g.
+  /// `AppState.saveGlyph`), not push it back out — it already came from
+  /// the network.
+  Future<void> watchMyAlphabet(void Function(Glyph glyph) onGlyph) async {
+    final user = auth.currentUser;
+    if (user == null) return;
+    await _myAlphabetWatch?.cancel();
+    myAlphabetId ??= await alphabets.ensureAlphabetId(user.id);
+    _myAlphabetWatch = alphabets.watchGlyphs(myAlphabetId!).listen(onGlyph);
   }
 
   /// Pushes one saved glyph to the cloud. Called right after the editor
@@ -202,6 +227,7 @@ class SessionState extends ChangeNotifier {
     for (final sub in _alphabetWatches.values) {
       sub.cancel();
     }
+    _myAlphabetWatch?.cancel();
     super.dispose();
   }
 }

@@ -48,7 +48,7 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
       if (!mounted) return;
       final named = nickname.trim().isEmpty
           ? profile
-          : Profile(id: profile.id, username: profile.username, displayName: nickname.trim());
+          : Profile(id: profile.id, username: profile.username, displayName: nickname.trim(), avatarUrl: profile.avatarUrl);
       final conversation = Conversation(id: conversationId, createdAt: DateTime.now(), otherMember: named);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => ConversationScreen(conversation: conversation)),

@@ -25,8 +25,23 @@ class ConversationRepository {
 
     final rows = await _client
         .from('conversation_members')
-        .select('conversation_id, user_id, nickname, profiles(id, username, display_name), conversations(created_at)')
+        .select('conversation_id, user_id, nickname, profiles(id, username, display_name, avatar_url), conversations(created_at)')
         .inFilter('conversation_id', conversationIds);
+
+    // One query for the unread badge on every conversation at once,
+    // counted client-side — PostgREST has no GROUP BY, and this is a
+    // small, personal-scale table.
+    final unreadRows = await _client
+        .from('messages')
+        .select('conversation_id')
+        .inFilter('conversation_id', conversationIds)
+        .neq('sender_id', currentUserId)
+        .filter('read_at', 'is', null);
+    final unreadCounts = <String, int>{};
+    for (final row in unreadRows) {
+      final cid = row['conversation_id'] as String;
+      unreadCounts[cid] = (unreadCounts[cid] ?? 0) + 1;
+    }
 
     final byConversation = <String, List<Map<String, dynamic>>>{};
     for (final row in rows) {
@@ -48,10 +63,15 @@ class ConversationRepository {
 
       var profile = Profile.fromRow(otherProfileRow);
       if (nickname != null && nickname.isNotEmpty) {
-        profile = Profile(id: profile.id, username: profile.username, displayName: nickname);
+        profile = Profile(id: profile.id, username: profile.username, displayName: nickname, avatarUrl: profile.avatarUrl);
       }
 
-      conversations.add(Conversation(id: entry.key, createdAt: createdAt, otherMember: profile));
+      conversations.add(Conversation(
+        id: entry.key,
+        createdAt: createdAt,
+        otherMember: profile,
+        unreadCount: unreadCounts[entry.key] ?? 0,
+      ));
     }
 
     conversations.sort((a, b) => b.createdAt.compareTo(a.createdAt));

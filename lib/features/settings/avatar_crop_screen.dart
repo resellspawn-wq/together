@@ -95,9 +95,17 @@ class _AvatarCropScreenState extends State<AvatarCropScreen> {
                           child: ClipRect(
                             child: InteractiveViewer(
                               transformationController: _transformController,
-                              minScale: 0.5,
+                              // minScale 1 + zero boundary margin, on a
+                              // child pre-sized to exactly cover the
+                              // viewport (BoxFit.cover below): the photo
+                              // can never shrink smaller than the frame
+                              // or be panned/zoomed out far enough to show
+                              // empty space past its own edges — it used
+                              // to be possible to drag the photo entirely
+                              // out of view.
+                              minScale: 1,
                               maxScale: 4,
-                              boundaryMargin: const EdgeInsets.all(double.infinity),
+                              boundaryMargin: EdgeInsets.zero,
                               child: Image.memory(widget.imageBytes, fit: BoxFit.cover, width: _viewportSize, height: _viewportSize),
                             ),
                           ),

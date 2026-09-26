@@ -222,8 +222,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
         senderId: message.senderId,
         text: message.text!,
       );
-      if (!mounted) return;
-      setState(() => _pending.removeWhere((p) => p.id == message.id));
+      // Deliberately NOT removing `message` from `_pending` here: the
+      // insert succeeding only means the server has it, not that our own
+      // realtime stream has caught up yet. Removing it immediately opened
+      // a gap — invisible in neither `_pending` nor `_messages` — until
+      // the stream listener's own removeWhere (below) caught up moments
+      // later, which is exactly the "message disappears for a second"
+      // bug. The stream listener is the only place that removes it now.
     } catch (_) {
       if (!mounted) return;
       setState(() => _offline = true);
@@ -240,8 +245,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
     });
   }
 
-  Future<void> _pickAndSendAttachment() async {
-    final picked = await ImagePickerService.pickMedia();
+  Future<void> _pickAndSendAttachment({bool useCamera = false}) async {
+    final picked = await ImagePickerService.pickMedia(useCamera: useCamera);
     if (picked == null || !mounted) return;
 
     setState(() => _uploadingAttachment = true);
@@ -272,7 +277,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
     if (!mounted || result == null) return;
     switch (result) {
       case ConversationRenamed(:final name):
-        setState(() => _otherMember = Profile(id: _otherMember.id, username: _otherMember.username, displayName: name));
+        setState(() => _otherMember =
+            Profile(id: _otherMember.id, username: _otherMember.username, displayName: name, avatarUrl: _otherMember.avatarUrl));
       case ConversationCleared():
         setState(() => _messages = []);
       case ConversationDeleted():
@@ -320,10 +326,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 CircleAvatar(
                   radius: 16,
                   backgroundColor: AppColors.blush,
-                  child: AppText(
-                    other.displayName.characters.first.toUpperCase(),
-                    style: AppTypography.label(color: AppColors.berry),
-                  ),
+                  backgroundImage: other.avatarUrl != null ? NetworkImage(other.avatarUrl!) : null,
+                  child: other.avatarUrl == null
+                      ? AppText(
+                          other.displayName.characters.first.toUpperCase(),
+                          style: AppTypography.label(color: AppColors.berry),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Column(
@@ -420,6 +429,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 customEnabled: customEnabled,
                 onSend: _send,
                 onAttach: _uploadingAttachment ? null : _pickAndSendAttachment,
+                onCamera: _uploadingAttachment ? null : () => _pickAndSendAttachment(useCamera: true),
                 attaching: _uploadingAttachment,
               ),
               CustomKeyboard(
@@ -496,20 +506,18 @@ class _MessageBubble extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (message.pending) ...[
-                    Icon(AppIcons.clock, size: 12, color: textColor.withValues(alpha: 0.7)),
-                    const SizedBox(width: 4),
-                    AppText('in invio…', style: AppTypography.label(color: textColor.withValues(alpha: 0.7))),
-                  ] else ...[
+                  if (!message.pending)
                     AppText(_formatTime(message.createdAt), style: AppTypography.label(color: textColor.withValues(alpha: 0.7))),
-                    if (isMine) ...[
-                      const SizedBox(width: 4),
-                      Icon(
-                        message.readAt != null || message.deliveredAt != null ? AppIcons.checks : AppIcons.check,
-                        size: 14,
-                        color: message.readAt != null ? textColor : textColor.withValues(alpha: 0.6),
-                      ),
-                    ],
+                  if (isMine) ...[
+                    const SizedBox(width: 4),
+                    // Grey single check: not sent yet (still local/pending).
+                    // Grey double check: sent, not read yet.
+                    // Green double check: read.
+                    Icon(
+                      message.pending ? AppIcons.check : AppIcons.checks,
+                      size: 14,
+                      color: message.readAt != null ? AppColors.readGreen : textColor.withValues(alpha: 0.65),
+                    ),
                   ],
                 ],
               ),
@@ -541,6 +549,7 @@ class _ComposeArea extends StatelessWidget {
   final bool customEnabled;
   final VoidCallback onSend;
   final VoidCallback? onAttach;
+  final VoidCallback? onCamera;
   final bool attaching;
 
   const _ComposeArea({
@@ -549,6 +558,7 @@ class _ComposeArea extends StatelessWidget {
     required this.customEnabled,
     required this.onSend,
     required this.onAttach,
+    required this.onCamera,
     required this.attaching,
   });
 
@@ -569,6 +579,10 @@ class _ComposeArea extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.fuchsia),
                   )
                 : Icon(AppIcons.paperclip, color: AppColors.berry),
+          ),
+          IconButton(
+            onPressed: onCamera,
+            icon: Icon(AppIcons.camera, color: AppColors.berry),
           ),
           Expanded(
             child: LiveGlyphPreview(controller: controller, alphabet: alphabet, customEnabled: customEnabled),

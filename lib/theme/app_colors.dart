@@ -56,4 +56,10 @@ abstract final class AppColors {
   static Color get chromeLight => _isDark ? const Color(0xFF3A2E34) : const Color(0xFFF4F4F6);
   static Color get chromeMid => _isDark ? const Color(0xFF5C4B54) : const Color(0xFFBFC2C9);
   static Color get chromeDark => _isDark ? const Color(0xFF2E252A) : const Color(0xFFEDEEF1);
+
+  /// The one deliberate exception to "never a raw grey, always tinted" —
+  /// read-receipt ticks are a universally recognized convention, and
+  /// grey/green is that convention. A touch brighter in dark mode so it
+  /// still pops off a dark bubble.
+  static Color get readGreen => _isDark ? const Color(0xFF5EE28C) : const Color(0xFF34C759);
 }
