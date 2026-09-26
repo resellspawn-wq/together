@@ -8,6 +8,7 @@ import '../../core/models/alphabet.dart';
 import '../../theme/theme.dart';
 import 'drawing_canvas.dart';
 import 'editor_controller.dart';
+import '../../widgets/app_text.dart';
 
 /// The "Crea il tuo alfabeto" editor: one letter at a time, draw, clear,
 /// undo/redo, save. Used both for the linear onboarding flow (A -> Z)
@@ -92,7 +93,7 @@ class _EditorScreenState extends State<EditorScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: Text(
+          title: AppText(
             widget.sequential ? 'Crea il tuo alfabeto' : 'Modifica lettera',
             style: AppTypography.titleCompact(),
           ),
@@ -127,8 +128,8 @@ class _EditorScreenState extends State<EditorScreen> {
                         child: Column(
                           key: ValueKey(_index),
                           children: [
-                            Text(_letter, style: AppTypography.hero()),
-                            Text(
+                            AppText(_letter, style: AppTypography.hero()),
+                            AppText(
                               '$_letter · ${_index + 1} / ${kAlphabetLetters.length}',
                               style: AppTypography.bodySmall(),
                             ),
@@ -167,7 +168,7 @@ class _EditorScreenState extends State<EditorScreen> {
                         child: OutlinedButton.icon(
                           onPressed: _controller.hasContent ? _controller.clear : null,
                           icon: const Icon(AppIcons.trash, size: 18),
-                          label: const Text('Cancella'),
+                          label: const AppText('Cancella'),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm + 2),
@@ -192,7 +193,7 @@ class _EditorScreenState extends State<EditorScreen> {
                     animation: _controller,
                     builder: (context, _) => FilledButton(
                       onPressed: _controller.hasContent ? _save : null,
-                      child: Text(_primaryLabel()),
+                      child: AppText(_primaryLabel()),
                     ),
                   ),
                 ),

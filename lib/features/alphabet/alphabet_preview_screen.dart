@@ -5,6 +5,7 @@ import '../../core/models/alphabet.dart';
 import '../../widgets/custom_text/custom_text.dart';
 import '../../widgets/glyph/glyph_view.dart';
 import '../editor/editor_screen.dart';
+import '../../widgets/app_text.dart';
 
 /// Shows the whole A-Z grid with each letter's own glyph, a live "prova a
 /// scrivere" field, and lets the user tap any letter to jump into the
@@ -50,7 +51,7 @@ class _AlphabetPreviewScreenState extends State<AlphabetPreviewScreen> {
     final alphabet = state.alphabet;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Il tuo alfabeto')),
+      appBar: AppBar(title: const AppText('Il tuo alfabeto')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -84,7 +85,7 @@ class _AlphabetPreviewScreenState extends State<AlphabetPreviewScreen> {
               },
             ),
             const SizedBox(height: 28),
-            Text('Prova a scrivere qualcosa', style: Theme.of(context).textTheme.titleMedium),
+            AppText('Prova a scrivere qualcosa', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             TextField(
               controller: _tryController,

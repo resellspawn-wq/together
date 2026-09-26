@@ -9,6 +9,7 @@ import '../../theme/theme.dart';
 import '../alphabet/alphabet_preview_screen.dart';
 import '../auth/auth_gate.dart';
 import '../editor/editor_screen.dart';
+import '../../widgets/app_text.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -48,7 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       if (!ok) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Non è stato possibile attivare le notifiche. Controlla i permessi del browser.')),
+          const SnackBar(content: AppText('Non è stato possibile attivare le notifiche. Controlla i permessi del browser.')),
         );
       }
       setState(() {
@@ -73,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await BackendScope.readOf(context).updateMyAvatar(picked.bytes, extension: picked.extension);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non è stato possibile aggiornare la foto.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: AppText('Non è stato possibile aggiornare la foto.')));
       }
     } finally {
       if (mounted) setState(() => _avatarBusy = false);
@@ -85,7 +86,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final newName = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cambia il tuo nome'),
+        title: const AppText('Cambia il tuo nome'),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -93,8 +94,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onSubmitted: (v) => Navigator.of(context).pop(v),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('ANNULLA')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text), child: const Text('SALVA')),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const AppText('ANNULLA')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text), child: const AppText('SALVA')),
         ],
       ),
     );
@@ -104,7 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await BackendScope.readOf(context).updateMyDisplayName(newName.trim());
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non è stato possibile salvare il nome.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: AppText('Non è stato possibile salvare il nome.')));
       }
     }
   }
@@ -125,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: const Icon(AppIcons.arrowLeft),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text('Impostazioni', style: AppTypography.titleCompact()),
+          title: AppText('Impostazioni', style: AppTypography.titleCompact()),
         ),
         body: SafeArea(
           child: ListView(
@@ -148,7 +149,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 backgroundColor: AppColors.blush,
                                 backgroundImage: profile.avatarUrl != null ? NetworkImage(profile.avatarUrl!) : null,
                                 child: profile.avatarUrl == null
-                                    ? Text(
+                                    ? AppText(
                                         profile.displayName.characters.first.toUpperCase(),
                                         style: AppTypography.titleCompact(color: AppColors.berry),
                                       )
@@ -173,8 +174,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(profile.displayName, style: AppTypography.titleCompact()),
-                              Text('@${profile.username}', style: AppTypography.bodySmall()),
+                              AppText(profile.displayName, style: AppTypography.titleCompact()),
+                              AppText('@${profile.username}', style: AppTypography.bodySmall()),
                             ],
                           ),
                         ),
@@ -194,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     ListTile(
                       leading: const Icon(AppIcons.gridFour),
-                      title: Text('Visualizza alfabeto', style: AppTypography.body()),
+                      title: AppText('Visualizza alfabeto', style: AppTypography.body()),
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const AlphabetPreviewScreen()),
                       ),
@@ -202,7 +203,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(AppIcons.pencilSimple),
-                      title: Text('Modifica alfabeto', style: AppTypography.body()),
+                      title: AppText('Modifica alfabeto', style: AppTypography.body()),
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const EditorScreen(sequential: false)),
                       ),
@@ -210,7 +211,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(AppIcons.keyboard),
-                      title: Text('Prova a scrivere', style: AppTypography.body()),
+                      title: AppText('Prova a scrivere', style: AppTypography.body()),
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const AlphabetPreviewScreen(focusTryField: true)),
                       ),
@@ -218,8 +219,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const Divider(height: 1),
                     SwitchListTile(
                       activeThumbColor: AppColors.fuchsia,
-                      title: Text('Alfabeto personalizzato', style: AppTypography.body()),
-                      subtitle: Text(
+                      title: AppText('Alfabeto personalizzato', style: AppTypography.body()),
+                      subtitle: AppText(
                         'Quando è OFF il testo viene mostrato normalmente.',
                         style: AppTypography.bodySmall(),
                       ),
@@ -234,8 +235,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _Card(
                 child: SwitchListTile(
                   activeThumbColor: AppColors.fuchsia,
-                  title: Text('Notifiche push', style: AppTypography.body()),
-                  subtitle: Text(
+                  title: AppText('Notifiche push', style: AppTypography.body()),
+                  subtitle: AppText(
                     _pushSupported
                         ? 'Ricevi una notifica quando arriva un nuovo messaggio, anche ad app chiusa.'
                         : 'Non disponibili su questo browser. Su iPhone: aggiungi Together alla schermata Home, poi apri l\'app da lì.',
@@ -249,8 +250,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const _SectionLabel('Info'),
               _Card(
                 child: ListTile(
-                  title: Text('Together', style: AppTypography.body()),
-                  subtitle: Text('Il tuo alfabeto, il tuo modo di scrivere.', style: AppTypography.bodySmall()),
+                  title: AppText('Together', style: AppTypography.body()),
+                  subtitle: AppText('Il tuo alfabeto, il tuo modo di scrivere.', style: AppTypography.bodySmall()),
                 ),
               ),
               if (profile != null) ...[
@@ -258,8 +259,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _Card(
                   child: ListTile(
                     leading: const Icon(AppIcons.signOut, color: AppColors.berry),
-                    title: Text('Esci', style: AppTypography.body(color: AppColors.berry)),
-                    subtitle: Text('@${profile.username}', style: AppTypography.bodySmall()),
+                    title: AppText('Esci', style: AppTypography.body(color: AppColors.berry)),
+                    subtitle: AppText('@${profile.username}', style: AppTypography.bodySmall()),
                     onTap: () async {
                       await session.auth.signOut();
                       if (!context.mounted) return;
@@ -306,7 +307,7 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.xs, AppSpacing.sm, AppSpacing.xs, AppSpacing.sm),
-      child: Text(text, style: AppTypography.label(color: AppColors.berry)),
+      child: AppText(text, style: AppTypography.label(color: AppColors.berry)),
     );
   }
 }

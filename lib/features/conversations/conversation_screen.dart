@@ -14,6 +14,7 @@ import '../../theme/theme.dart';
 import '../keyboard/custom_keyboard.dart';
 import 'animated_glyph_text.dart';
 import 'live_glyph_preview.dart';
+import '../../widgets/app_text.dart';
 
 /// A single 1-to-1 conversation. Messages are plain Unicode text in the
 /// database and in [TextEditingController] at every point — this screen
@@ -199,7 +200,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     final newName = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cambia nome contatto'),
+        title: const AppText('Cambia nome contatto'),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -207,8 +208,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
           onSubmitted: (v) => Navigator.of(context).pop(v),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('ANNULLA')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text), child: const Text('SALVA')),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const AppText('ANNULLA')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text), child: const AppText('SALVA')),
         ],
       ),
     );
@@ -229,11 +230,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
+        title: AppText(title),
+        content: AppText(message),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('ANNULLA')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: Text(confirmLabel)),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const AppText('ANNULLA')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: AppText(confirmLabel)),
         ],
       ),
     );
@@ -252,7 +253,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       if (mounted) setState(() => _messages = []);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non è stato possibile svuotare la chat.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: AppText('Non è stato possibile svuotare la chat.')));
       }
     }
   }
@@ -269,7 +270,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Non è stato possibile eliminare il contatto.')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: AppText('Non è stato possibile eliminare il contatto.')));
       }
     }
   }
@@ -305,8 +306,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(other.displayName, style: AppTypography.titleCompact()),
-              Text('@${other.username}', style: AppTypography.label()),
+              AppText(other.displayName, style: AppTypography.titleCompact()),
+              AppText('@${other.username}', style: AppTypography.label()),
             ],
           ),
           actions: [
@@ -323,9 +324,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 }
               },
               itemBuilder: (context) => const [
-                PopupMenuItem(value: 'rename', child: Text('Cambia nome')),
-                PopupMenuItem(value: 'clear', child: Text('Svuota chat')),
-                PopupMenuItem(value: 'delete', child: Text('Elimina contatto')),
+                PopupMenuItem(value: 'rename', child: AppText('Cambia nome')),
+                PopupMenuItem(value: 'clear', child: AppText('Svuota chat')),
+                PopupMenuItem(value: 'delete', child: AppText('Elimina contatto')),
               ],
             ),
           ],
@@ -341,7 +342,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       children: [
                         const Icon(AppIcons.cloudSlash, size: 14, color: AppColors.berry),
                         const SizedBox(width: AppSpacing.xs),
-                        Text(
+                        AppText(
                           'offline — invio alla riconnessione',
                           style: AppTypography.label(color: AppColors.berry),
                         ),
@@ -361,7 +362,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         ? Center(
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-                              child: Text(
+                              child: AppText(
                                 'Scrivi il primo messaggio a ${other.displayName}',
                                 textAlign: TextAlign.center,
                                 style: AppTypography.body(color: AppColors.inkSoft),
@@ -468,9 +469,9 @@ class _MessageBubble extends StatelessWidget {
                   if (message.pending) ...[
                     Icon(AppIcons.clock, size: 12, color: textColor.withValues(alpha: 0.7)),
                     const SizedBox(width: 4),
-                    Text('in invio…', style: AppTypography.label(color: textColor.withValues(alpha: 0.7))),
+                    AppText('in invio…', style: AppTypography.label(color: textColor.withValues(alpha: 0.7))),
                   ] else ...[
-                    Text(_formatTime(message.createdAt), style: AppTypography.label(color: textColor.withValues(alpha: 0.7))),
+                    AppText(_formatTime(message.createdAt), style: AppTypography.label(color: textColor.withValues(alpha: 0.7))),
                     if (isMine) ...[
                       const SizedBox(width: 4),
                       Icon(

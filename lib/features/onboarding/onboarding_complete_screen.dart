@@ -6,6 +6,7 @@ import '../../theme/theme.dart';
 import '../../widgets/animated_gradient_background.dart';
 import '../alphabet/alphabet_preview_screen.dart';
 import '../home/home_screen.dart';
+import '../../widgets/app_text.dart';
 
 class OnboardingCompleteScreen extends StatelessWidget {
   const OnboardingCompleteScreen({super.key});
@@ -27,13 +28,13 @@ class OnboardingCompleteScreen extends StatelessWidget {
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .scaleXY(begin: 0.7, end: 1, duration: AppMotion.base, curve: AppMotion.emphasized),
                 const SizedBox(height: AppSpacing.xl),
-                Text('il tuo', textAlign: TextAlign.center, style: AppTypography.display())
+                AppText('il tuo', textAlign: TextAlign.center, style: AppTypography.display())
                     .animate(delay: AppMotion.staggerStep)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter),
-                Text('alfabeto', textAlign: TextAlign.center, style: AppTypography.accent(fontSize: 48))
+                AppText('alfabeto', textAlign: TextAlign.center, style: AppTypography.accent(fontSize: 48))
                     .animate(delay: AppMotion.staggerStep * 2)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter),
-                Text('è pronto.', textAlign: TextAlign.center, style: AppTypography.display())
+                AppText('è pronto.', textAlign: TextAlign.center, style: AppTypography.display())
                     .animate(delay: AppMotion.staggerStep * 3)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter),
                 const Spacer(),
@@ -52,7 +53,7 @@ class OnboardingCompleteScreen extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const AlphabetPreviewScreen(focusTryField: true)),
                       );
                     },
-                    child: const Text('PROVALO'),
+                    child: const AppText('PROVALO'),
                   ),
                 ),
               ],

@@ -8,6 +8,7 @@ import '../../widgets/animated_gradient_background.dart';
 import '../conversations/conversation_screen.dart';
 import '../conversations/new_conversation_screen.dart';
 import '../settings/settings_screen.dart';
+import '../../widgets/app_text.dart';
 
 /// The app's root screen once signed in and onboarded: a WhatsApp-style
 /// chat list, with the user's own avatar (tap -> Settings) up top instead
@@ -63,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: AppColors.blush,
                 backgroundImage: profile?.avatarUrl != null ? NetworkImage(profile!.avatarUrl!) : null,
                 child: profile?.avatarUrl == null
-                    ? Text(
+                    ? AppText(
                         (profile?.displayName ?? '?').characters.first.toUpperCase(),
                         style: AppTypography.body(color: AppColors.berry).copyWith(fontWeight: FontWeight.w700),
                       )
@@ -71,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          title: Text('Together', style: AppTypography.titleCompact()),
+          title: AppText('Together', style: AppTypography.titleCompact()),
         ),
         floatingActionButton: _Fab(onPressed: _newConversation),
         body: SafeArea(
@@ -122,6 +123,88 @@ class _ConversationTile extends StatelessWidget {
 
   const _ConversationTile({required this.conversation, required this.index, required this.onChanged});
 
+  Future<void> _showOptions(BuildContext context) async {
+    final other = conversation.otherMember;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.lg)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(AppIcons.pencilSimple),
+              title: AppText('Cambia nome', style: AppTypography.body()),
+              onTap: () => Navigator.of(context).pop('rename'),
+            ),
+            ListTile(
+              leading: const Icon(AppIcons.trash, color: AppColors.berry),
+              title: AppText('Elimina conversazione', style: AppTypography.body(color: AppColors.berry)),
+              onTap: () => Navigator.of(context).pop('delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!context.mounted || action == null) return;
+    if (action == 'rename') {
+      await _rename(context, other.displayName);
+    } else if (action == 'delete') {
+      await _delete(context, other.displayName);
+    }
+  }
+
+  Future<void> _rename(BuildContext context, String currentName) async {
+    final controller = TextEditingController(text: currentName);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const AppText('Cambia nome contatto'),
+        content: TextField(controller: controller, autofocus: true, onSubmitted: (v) => Navigator.of(context).pop(v)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const AppText('ANNULLA')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text), child: const AppText('SALVA')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (newName == null || newName.trim().isEmpty || !context.mounted) return;
+    try {
+      await BackendScope.readOf(context).renameConversation(conversation.id, newName.trim());
+      onChanged();
+    } catch (_) {
+      // Best-effort; the list still shows the old name until the next
+      // successful refresh.
+    }
+  }
+
+  Future<void> _delete(BuildContext context, String displayName) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const AppText('Eliminare la conversazione?'),
+        content: AppText('La conversazione con $displayName verrà eliminata per entrambi.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const AppText('ANNULLA')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const AppText('ELIMINA')),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    try {
+      await BackendScope.readOf(context).deleteConversation(conversation.id);
+      onChanged();
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: AppText('Non è stato possibile eliminare la conversazione.')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final other = conversation.otherMember;
@@ -144,6 +227,7 @@ class _ConversationTile extends StatelessWidget {
             );
             if (changed == true) onChanged();
           },
+          onLongPress: () => _showOptions(context),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             child: Row(
@@ -151,7 +235,7 @@ class _ConversationTile extends StatelessWidget {
                 CircleAvatar(
                   radius: 22,
                   backgroundColor: AppColors.blush,
-                  child: Text(
+                  child: AppText(
                     other.displayName.characters.first.toUpperCase(),
                     style: AppTypography.body(color: AppColors.berry).copyWith(fontWeight: FontWeight.w700),
                   ),
@@ -161,8 +245,8 @@ class _ConversationTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(other.displayName, style: AppTypography.titleCompact()),
-                      Text('@${other.username}', style: AppTypography.bodySmall()),
+                      AppText(other.displayName, style: AppTypography.titleCompact()),
+                      AppText('@${other.username}', style: AppTypography.bodySmall()),
                     ],
                   ),
                 ),
@@ -195,7 +279,7 @@ class _EmptyState extends StatelessWidget {
           children: [
             Icon(icon, size: 40, color: AppColors.mauve),
             const SizedBox(height: AppSpacing.md),
-            Text(
+            AppText(
               message,
               textAlign: TextAlign.center,
               style: AppTypography.body(color: AppColors.inkSoft),

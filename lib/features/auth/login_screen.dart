@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/backend_scope.dart';
 import '../../theme/theme.dart';
 import 'register_screen.dart';
+import '../../widgets/app_text.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -71,12 +72,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                         .scaleXY(begin: 0.8, end: 1, duration: AppMotion.base, curve: AppMotion.emphasized),
                     const SizedBox(height: AppSpacing.md),
-                    Text('TOGETHER', textAlign: TextAlign.center, style: AppTypography.hero())
+                    AppText('TOGETHER', textAlign: TextAlign.center, style: AppTypography.hero())
                         .animate(delay: AppMotion.staggerStep)
                         .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                         .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
                     const SizedBox(height: AppSpacing.md),
-                    Text(
+                    AppText(
                       'Accedi per ritrovare il tuo alfabeto e le tue conversazioni.',
                       textAlign: TextAlign.center,
                       style: AppTypography.body(color: AppColors.inkSoft),
@@ -103,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: AppSpacing.md),
-                      Text(_error!, style: AppTypography.bodySmall(color: AppColors.berry)),
+                      AppText(_error!, style: AppTypography.bodySmall(color: AppColors.berry)),
                     ],
                     const SizedBox(height: AppSpacing.xl),
                     FilledButton(
@@ -114,14 +115,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.white),
                             )
-                          : const Text('ACCEDI'),
+                          : const AppText('ACCEDI'),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     TextButton(
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const RegisterScreen()),
                       ),
-                      child: const Text('Non hai un account? Registrati'),
+                      child: const AppText('Non hai un account? Registrati'),
                     ),
                   ]
                       .animate(delay: AppMotion.staggerStep * 3, interval: Duration.zero)

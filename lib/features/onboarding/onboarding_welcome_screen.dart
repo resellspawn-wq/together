@@ -6,6 +6,7 @@ import '../../widgets/animated_gradient_background.dart';
 import '../../widgets/marquee_text.dart';
 import '../editor/editor_screen.dart';
 import 'onboarding_complete_screen.dart';
+import '../../widgets/app_text.dart';
 
 class OnboardingWelcomeScreen extends StatelessWidget {
   const OnboardingWelcomeScreen({super.key});
@@ -28,16 +29,16 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .scaleXY(begin: 0.8, end: 1, duration: AppMotion.base, curve: AppMotion.emphasized),
                 const SizedBox(height: AppSpacing.xl),
-                Text('CREA IL TUO', textAlign: TextAlign.center, style: AppTypography.hero())
+                AppText('CREA IL TUO', textAlign: TextAlign.center, style: AppTypography.hero())
                     .animate(delay: AppMotion.staggerStep)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
-                Text('alfabeto', textAlign: TextAlign.center, style: AppTypography.accent(fontSize: 52))
+                AppText('alfabeto', textAlign: TextAlign.center, style: AppTypography.accent(fontSize: 52))
                     .animate(delay: AppMotion.staggerStep * 2)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
                 const SizedBox(height: AppSpacing.lg),
-                Text(
+                AppText(
                   'Trasforma il tuo modo di scrivere in qualcosa che è solo tuo.',
                   textAlign: TextAlign.center,
                   style: AppTypography.body(color: AppColors.inkSoft),
@@ -65,7 +66,7 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    child: const Text('INIZIA'),
+                    child: const AppText('INIZIA'),
                   ),
                 ).animate(delay: AppMotion.staggerStep * 5).fadeIn(duration: AppMotion.base, curve: AppMotion.enter),
               ],

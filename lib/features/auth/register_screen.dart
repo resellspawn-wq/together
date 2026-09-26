@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/backend_scope.dart';
 import '../../theme/theme.dart';
+import '../../widgets/app_text.dart';
 
 final RegExp _usernamePattern = RegExp(r'^[a-z0-9_]{3,20}$');
 
@@ -92,7 +93,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   Icon(AppIcons.envelopeSimple, size: 48, color: AppColors.fuchsia),
                   const SizedBox(height: AppSpacing.lg),
-                  Text(
+                  AppText(
                     'Controlla la tua email per confermare l\'account, poi torna qui e accedi.',
                     textAlign: TextAlign.center,
                     style: AppTypography.body(),
@@ -100,7 +101,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('TORNA AL LOGIN'),
+                    child: const AppText('TORNA AL LOGIN'),
                   ),
                 ],
               ),
@@ -128,11 +129,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('CREA IL TUO', style: AppTypography.display())
+                  AppText('CREA IL TUO', style: AppTypography.display())
                       .animate()
                       .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                       .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
-                  Text('account', style: AppTypography.accent(fontSize: 36))
+                  AppText('account', style: AppTypography.accent(fontSize: 36))
                       .animate(delay: AppMotion.staggerStep)
                       .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                       .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
@@ -174,7 +175,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: AppSpacing.md),
-                    Text(_error!, style: AppTypography.bodySmall(color: AppColors.berry)),
+                    AppText(_error!, style: AppTypography.bodySmall(color: AppColors.berry)),
                   ],
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton(
@@ -185,7 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.white),
                           )
-                        : const Text('REGISTRATI'),
+                        : const AppText('REGISTRATI'),
                   ),
                   const SizedBox(height: AppSpacing.xxl),
                 ]

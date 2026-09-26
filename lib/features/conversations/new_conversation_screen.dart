@@ -6,6 +6,7 @@ import '../../core/models/conversation.dart';
 import '../../core/models/profile.dart';
 import '../../theme/theme.dart';
 import 'conversation_screen.dart';
+import '../../widgets/app_text.dart';
 
 class NewConversationScreen extends StatefulWidget {
   const NewConversationScreen({super.key});
@@ -66,7 +67,7 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Che nome vuoi dargli?'),
+        title: const AppText('Che nome vuoi dargli?'),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -75,10 +76,10 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
           onSubmitted: (v) => Navigator.of(context).pop(v),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('ANNULLA')),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const AppText('ANNULLA')),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('CONTINUA'),
+            child: const AppText('CONTINUA'),
           ),
         ],
       ),
@@ -106,16 +107,16 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: AppSpacing.md),
-                Text('NUOVA', style: AppTypography.display())
+                AppText('NUOVA', style: AppTypography.display())
                     .animate()
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
-                Text('conversazione', style: AppTypography.accent(fontSize: 36))
+                AppText('conversazione', style: AppTypography.accent(fontSize: 36))
                     .animate(delay: AppMotion.staggerStep)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
                 const SizedBox(height: AppSpacing.xxl),
-                Text('Cerca per username', style: AppTypography.label()),
+                AppText('Cerca per username', style: AppTypography.label()),
                 const SizedBox(height: AppSpacing.sm),
                 TextField(
                   controller: _username,
@@ -126,7 +127,7 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
                 ),
                 if (_error != null) ...[
                   const SizedBox(height: AppSpacing.md),
-                  Text(_error!, style: AppTypography.bodySmall(color: AppColors.berry)),
+                  AppText(_error!, style: AppTypography.bodySmall(color: AppColors.berry)),
                 ],
                 const SizedBox(height: AppSpacing.xl),
                 FilledButton(
@@ -137,7 +138,7 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.white),
                         )
-                      : const Text('INIZIA CONVERSAZIONE'),
+                      : const AppText('INIZIA CONVERSAZIONE'),
                 ),
               ],
             ),
