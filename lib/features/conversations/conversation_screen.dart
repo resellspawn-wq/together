@@ -13,6 +13,7 @@ import '../../core/session_state.dart';
 import '../../theme/theme.dart';
 import '../keyboard/custom_keyboard.dart';
 import 'animated_glyph_text.dart';
+import 'conversation_settings_screen.dart';
 import 'live_glyph_preview.dart';
 import '../../widgets/app_text.dart';
 
@@ -195,83 +196,20 @@ class _ConversationScreenState extends State<ConversationScreen> {
     });
   }
 
-  Future<void> _renameContact() async {
-    final controller = TextEditingController(text: _otherMember.displayName);
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const AppText('Cambia nome contatto'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          style: AppTypography.body(),
-          onSubmitted: (v) => Navigator.of(context).pop(v),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const AppText('ANNULLA')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(controller.text), child: const AppText('SALVA')),
-        ],
+  Future<void> _openSettings() async {
+    final result = await Navigator.of(context).push<ConversationSettingsResult>(
+      MaterialPageRoute(
+        builder: (_) => ConversationSettingsScreen(conversationId: widget.conversation.id, otherMember: _otherMember),
       ),
     );
-    controller.dispose();
-    if (newName == null || newName.trim().isEmpty || !mounted) return;
-
-    final trimmed = newName.trim();
-    setState(() => _otherMember = Profile(id: _otherMember.id, username: _otherMember.username, displayName: trimmed));
-    try {
-      await BackendScope.readOf(context).renameConversation(widget.conversation.id, trimmed);
-    } catch (_) {
-      // Best-effort — the name still shows locally; it'll retry to save
-      // next time this screen reloads the conversation list.
-    }
-  }
-
-  Future<bool> _confirm({required String title, required String message, required String confirmLabel}) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: AppText(title),
-        content: AppText(message),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const AppText('ANNULLA')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: AppText(confirmLabel)),
-        ],
-      ),
-    );
-    return result ?? false;
-  }
-
-  Future<void> _clearChat() async {
-    final ok = await _confirm(
-      title: 'Svuotare la chat?',
-      message: 'Tutti i messaggi con ${_otherMember.displayName} verranno eliminati per entrambi.',
-      confirmLabel: 'SVUOTA',
-    );
-    if (!ok || !mounted) return;
-    try {
-      await BackendScope.readOf(context).clearChat(widget.conversation.id);
-      if (mounted) setState(() => _messages = []);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: AppText('Non è stato possibile svuotare la chat.')));
-      }
-    }
-  }
-
-  Future<void> _deleteContact() async {
-    final ok = await _confirm(
-      title: 'Eliminare il contatto?',
-      message: 'La conversazione con ${_otherMember.displayName} verrà eliminata per entrambi.',
-      confirmLabel: 'ELIMINA',
-    );
-    if (!ok || !mounted) return;
-    try {
-      await BackendScope.readOf(context).deleteConversation(widget.conversation.id);
-      if (mounted) Navigator.of(context).pop(true);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: AppText('Non è stato possibile eliminare il contatto.')));
-      }
+    if (!mounted || result == null) return;
+    switch (result) {
+      case ConversationRenamed(:final name):
+        setState(() => _otherMember = Profile(id: _otherMember.id, username: _otherMember.username, displayName: name));
+      case ConversationCleared():
+        setState(() => _messages = []);
+      case ConversationDeleted():
+        Navigator.of(context).pop(true);
     }
   }
 
@@ -311,23 +249,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
             ],
           ),
           actions: [
-            PopupMenuButton<String>(
-              icon: const Icon(AppIcons.dotsThreeVertical),
-              onSelected: (value) {
-                switch (value) {
-                  case 'rename':
-                    _renameContact();
-                  case 'clear':
-                    _clearChat();
-                  case 'delete':
-                    _deleteContact();
-                }
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'rename', child: AppText('Cambia nome')),
-                PopupMenuItem(value: 'clear', child: AppText('Svuota chat')),
-                PopupMenuItem(value: 'delete', child: AppText('Elimina contatto')),
-              ],
+            IconButton(
+              icon: const Icon(AppIcons.gearSix),
+              onPressed: _openSettings,
             ),
           ],
           bottom: _offline

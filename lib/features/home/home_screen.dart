@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/backend_scope.dart';
 import '../../core/models/conversation.dart';
 import '../../theme/theme.dart';
-import '../../widgets/animated_gradient_background.dart';
+import '../../widgets/mesh_background.dart';
 import '../conversations/conversation_screen.dart';
 import '../conversations/new_conversation_screen.dart';
 import '../settings/settings_screen.dart';
@@ -46,7 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final profile = BackendScope.of(context).myProfile;
 
-    return AnimatedGradientBackground(
+    return MeshBackground(
+      opacity: 0.6,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(

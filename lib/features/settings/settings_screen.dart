@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../../core/app_scope.dart';
@@ -10,6 +12,7 @@ import '../alphabet/alphabet_preview_screen.dart';
 import '../auth/auth_gate.dart';
 import '../editor/editor_screen.dart';
 import '../../widgets/app_text.dart';
+import 'avatar_crop_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -69,9 +72,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _changeAvatar() async {
     final picked = await ImagePickerService.pickImage();
     if (picked == null || !mounted) return;
+    final cropped = await Navigator.of(context).push<Uint8List>(
+      MaterialPageRoute(builder: (_) => AvatarCropScreen(imageBytes: picked.bytes)),
+    );
+    if (cropped == null || !mounted) return;
     setState(() => _avatarBusy = true);
     try {
-      await BackendScope.readOf(context).updateMyAvatar(picked.bytes, extension: picked.extension);
+      await BackendScope.readOf(context).updateMyAvatar(cropped, extension: 'png');
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: AppText('Non è stato possibile aggiornare la foto.')));

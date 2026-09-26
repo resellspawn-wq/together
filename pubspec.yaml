@@ -74,6 +74,9 @@ flutter:
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
+  shaders:
+    - shaders/mesh_background.frag
+
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 
