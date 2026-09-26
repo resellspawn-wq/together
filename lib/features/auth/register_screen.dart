@@ -133,7 +133,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       .animate()
                       .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                       .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
-                  AppText('account', style: AppTypography.accent(fontSize: 36))
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: AppText('account', style: AppTypography.accent(fontSize: 36)),
+                  )
                       .animate(delay: AppMotion.staggerStep)
                       .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                       .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),

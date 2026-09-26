@@ -31,7 +31,10 @@ class OnboardingCompleteScreen extends StatelessWidget {
                 AppText('il tuo', textAlign: TextAlign.center, style: AppTypography.display())
                     .animate(delay: AppMotion.staggerStep)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter),
-                AppText('alfabeto', textAlign: TextAlign.center, style: AppTypography.accent(fontSize: 48))
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: AppText('alfabeto', textAlign: TextAlign.center, style: AppTypography.accent(fontSize: 48)),
+                )
                     .animate(delay: AppMotion.staggerStep * 2)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter),
                 AppText('è pronto.', textAlign: TextAlign.center, style: AppTypography.display())

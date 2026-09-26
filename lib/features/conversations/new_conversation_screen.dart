@@ -111,7 +111,11 @@ class _NewConversationScreenState extends State<NewConversationScreen> {
                     .animate()
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
-                AppText('conversazione', style: AppTypography.accent(fontSize: 36))
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: AppText('conversazione', style: AppTypography.accent(fontSize: 36)),
+                )
                     .animate(delay: AppMotion.staggerStep)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),

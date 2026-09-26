@@ -33,7 +33,10 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                     .animate(delay: AppMotion.staggerStep)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
-                AppText('alfabeto', textAlign: TextAlign.center, style: AppTypography.accent(fontSize: 52))
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: AppText('alfabeto', textAlign: TextAlign.center, style: AppTypography.accent(fontSize: 52)),
+                )
                     .animate(delay: AppMotion.staggerStep * 2)
                     .fadeIn(duration: AppMotion.base, curve: AppMotion.enter)
                     .slideY(begin: 0.2, end: 0, duration: AppMotion.base, curve: AppMotion.emphasized),
