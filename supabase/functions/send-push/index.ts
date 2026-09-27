@@ -58,10 +58,18 @@ Deno.serve(async (req) => {
       return new Response('no subscriptions', { status: 200 });
     }
 
+    // No message text here on purpose: each person's alphabet is meant to
+    // be a private thing only the two of them share, and a push
+    // notification is rendered by the OS in a plain system font — it
+    // can't reproduce the recipient's handwriting, so showing the raw
+    // text would defeat the whole point. The conversation id in `url`
+    // (relative — the service worker resolves it against its own scope,
+    // so this works regardless of the app's deployed subpath) is what
+    // lets tapping the notification open the right chat.
     const notificationPayload = JSON.stringify({
       title: sender?.display_name ?? 'Together',
-      body: (message.text as string).slice(0, 120),
-      url: '/',
+      body: 'Hai ricevuto un nuovo messaggio',
+      url: `?c=${message.conversation_id}`,
     });
 
     const results = await Promise.allSettled(

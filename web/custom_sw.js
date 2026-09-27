@@ -37,11 +37,21 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || './';
+  // Relative to this worker's own scope (e.g. https://host/together/), not
+  // the origin root — the app can be deployed under a subpath, and a
+  // plain '/' would land outside it.
+  const relative = (event.notification.data && event.notification.data.url) || './';
+  const url = new URL(relative, self.registration.scope).href;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
+        // An already-open tab needs to actually navigate to the target
+        // conversation, not just come to the front — focus() alone left
+        // it sitting on whatever screen it already had open.
+        if ('navigate' in client) {
+          return client.navigate(url).then((navigated) => (navigated || client).focus());
+        }
         if ('focus' in client) return client.focus();
       }
       if (clients.openWindow) return clients.openWindow(url);

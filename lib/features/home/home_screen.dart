@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../core/backend_scope.dart';
 import '../../core/models/conversation.dart';
+import '../../core/pending_deep_link.dart';
 import '../../core/route_observer.dart';
 import '../../theme/theme.dart';
 import '../../widgets/mesh_background.dart';
@@ -28,6 +29,13 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   void initState() {
     super.initState();
     _future = BackendScope.readOf(context).loadConversations();
+
+    // Arrived here via a push notification's "?c=<id>" deep link — open
+    // that chat directly instead of leaving the person on the list.
+    final pendingConversationId = consumePendingConversationId();
+    if (pendingConversationId != null) {
+      _future.then((conversations) => _openConversationById(pendingConversationId, conversations));
+    }
   }
 
   @override
@@ -56,6 +64,16 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     final future = BackendScope.readOf(context).loadConversations();
     setState(() => _future = future);
     await future;
+  }
+
+  Future<void> _openConversationById(String id, List<Conversation> conversations) async {
+    if (!mounted) return;
+    final matches = conversations.where((c) => c.id == id);
+    if (matches.isEmpty) return;
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => ConversationScreen(conversation: matches.first)),
+    );
+    if (changed == true) _refresh();
   }
 
   Future<void> _newConversation() async {
