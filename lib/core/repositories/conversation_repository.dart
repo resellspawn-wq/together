@@ -23,20 +23,27 @@ class ConversationRepository {
     final conversationIds = myMemberships.map((r) => r['conversation_id'] as String).toList();
     if (conversationIds.isEmpty) return const [];
 
-    final rows = await _client
-        .from('conversation_members')
-        .select('conversation_id, user_id, nickname, profiles(id, username, display_name, avatar_url), conversations(created_at)')
-        .inFilter('conversation_id', conversationIds);
+    // Independent of each other (both only need conversationIds) — run
+    // together instead of one-after-the-other. Matters more now that
+    // Home refreshes every time it becomes visible again (see
+    // HomeScreen's RouteAware), not just on a cold start.
+    final results = await Future.wait([
+      _client
+          .from('conversation_members')
+          .select('conversation_id, user_id, nickname, profiles(id, username, display_name, avatar_url), conversations(created_at)')
+          .inFilter('conversation_id', conversationIds),
+      _client
+          .from('messages')
+          .select('conversation_id')
+          .inFilter('conversation_id', conversationIds)
+          .neq('sender_id', currentUserId)
+          .filter('read_at', 'is', null),
+    ]);
+    final rows = results[0];
+    final unreadRows = results[1];
 
-    // One query for the unread badge on every conversation at once,
-    // counted client-side — PostgREST has no GROUP BY, and this is a
+    // Counted client-side — PostgREST has no GROUP BY, and this is a
     // small, personal-scale table.
-    final unreadRows = await _client
-        .from('messages')
-        .select('conversation_id')
-        .inFilter('conversation_id', conversationIds)
-        .neq('sender_id', currentUserId)
-        .filter('read_at', 'is', null);
     final unreadCounts = <String, int>{};
     for (final row in unreadRows) {
       final cid = row['conversation_id'] as String;

@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../core/backend_scope.dart';
 import '../../core/models/conversation.dart';
+import '../../core/route_observer.dart';
 import '../../theme/theme.dart';
 import '../../widgets/mesh_background.dart';
 import '../conversations/conversation_screen.dart';
@@ -20,7 +21,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with RouteAware {
   late Future<List<Conversation>> _future;
 
   @override
@@ -29,6 +30,28 @@ class _HomeScreenState extends State<HomeScreen> {
     _future = BackendScope.readOf(context).loadConversations();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) routeObserver.subscribe(this, route);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  /// Fires every time Home becomes visible again after popping back from
+  /// anything pushed on top of it — opening a chat (so read counts/new
+  /// messages show up without a full app restart), deleting a contact,
+  /// starting a new conversation, coming back from Settings, all of it.
+  /// Previously this only ever refreshed on a cold start or a few
+  /// hand-threaded signals that didn't cover every case.
+  @override
+  void didPopNext() => _refresh();
+
   Future<void> _refresh() async {
     final future = BackendScope.readOf(context).loadConversations();
     setState(() => _future = future);
@@ -36,10 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _newConversation() async {
-    final started = await Navigator.of(context).push<bool>(
+    await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => const NewConversationScreen()),
     );
-    if (started == true) _refresh();
+    // didPopNext already refreshes on return; no need to also act on the
+    // result here.
   }
 
   @override

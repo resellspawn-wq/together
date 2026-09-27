@@ -7,6 +7,7 @@ import 'core/backend_scope.dart';
 import 'core/config/env.dart';
 import 'core/models/alphabet.dart';
 import 'core/models/app_settings.dart';
+import 'core/route_observer.dart';
 import 'core/session_state.dart';
 import 'core/storage/storage_service.dart';
 import 'features/auth/auth_gate.dart';
@@ -137,6 +138,7 @@ class _TogetherAppState extends State<TogetherApp> with WidgetsBindingObserver {
           title: 'Together',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.current,
+          navigatorObservers: [routeObserver],
           home: const AuthGate(),
         ),
       ),
